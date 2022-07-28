@@ -2,11 +2,13 @@ package com.bloggingapi;
 
 import java.util.Arrays;
 
+import org.modelmapper.ModelMapper;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Bean;
 
 @SpringBootApplication
 public class TheBloggingApplication extends SpringBootServletInitializer {
@@ -23,6 +25,11 @@ public class TheBloggingApplication extends SpringBootServletInitializer {
         		System.out.println(beanName);
         }
 	}
+
+    @Bean
+    ModelMapper modelMapper() {
+        return new ModelMapper();
+    }
 	
 	@Override
 	protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {

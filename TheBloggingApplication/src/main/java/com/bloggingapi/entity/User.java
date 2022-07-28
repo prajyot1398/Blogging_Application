@@ -29,10 +29,9 @@ public class User {
 	@Column(name="email", nullable = false, length = 100)
 	private String userEmail;
 	
-	@Column(name="password")
-	private String userPassword;
-	
 	@Column(name="about")
 	private String userAbout;
 	
+	@Column(name="password")
+	private String userPassword;
 }

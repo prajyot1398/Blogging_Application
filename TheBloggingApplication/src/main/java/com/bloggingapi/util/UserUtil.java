@@ -2,6 +2,9 @@ package com.bloggingapi.util;
 
 import java.util.List;
 import java.util.stream.Collectors;
+
+import org.modelmapper.ModelMapper;
+
 import java.util.ArrayList;
 
 import com.bloggingapi.entity.User;
@@ -9,10 +12,14 @@ import com.bloggingapi.payload.UserForm;
 
 public class UserUtil {
 	
-	//These two below methods can be avoided using Model-Mapper libraries.
+	//These two below methods can be written using Model-Mapper libraries.
 	
 	public static User userFormToUser(UserForm userForm) {
-		if(userForm != null) {
+		
+		//While using ModelMapper use variable names of both the classes same.
+		User user = new ModelMapper().map(userForm, User.class);
+		return user;
+		/*if(userForm != null) {
 			User user = new User();
 			user.setUserId(userForm.getUserId());
 			user.setUserName(userForm.getUserName());
@@ -23,12 +30,14 @@ public class UserUtil {
 		}
 		else {
 			return null;
-		}
+		}*/
 	}
 	
 	public static UserForm userToUserForm(User user) {
 		
-		if(user != null) {
+		UserForm userForm = new ModelMapper().map(user, UserForm.class);
+		return userForm;
+		/*if(user != null) {
 			UserForm form = new UserForm();
 			form.setUserId(user.getUserId());
 			form.setUserName(user.getUserName());
@@ -38,7 +47,7 @@ public class UserUtil {
 			return form;
 		}else {
 			return null;
-		}
+		}*/
 	}
 	
 	public static List<User> getUserListFromUserFormList(List<UserForm> formList) {
