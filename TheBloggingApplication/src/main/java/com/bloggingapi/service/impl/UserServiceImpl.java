@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import com.bloggingapi.blogenum.UserAttrsEnum;
 import com.bloggingapi.entity.User;
+import com.bloggingapi.exception.ElementAlreadyExistException;
 import com.bloggingapi.exception.ResourceNotFoundException;
 import com.bloggingapi.payload.UserForm;
 import com.bloggingapi.repository.UserRepo;
@@ -23,7 +24,12 @@ public class UserServiceImpl implements UserService {
 	public UserForm createUser(UserForm userForm) {
 		
 		User user = UserUtil.userFormToUser(userForm);
-		user = this.userRepo.save(user);
+		if(!this.userRepo.existsUserByUserEmail(user.getUserEmail())) {
+			user = this.userRepo.save(user);
+		}
+		else {
+			throw new ElementAlreadyExistException("User", "Email", user.getUserEmail());
+		}
 		return UserUtil.userToUserForm(user);
 	}
 
@@ -43,19 +49,16 @@ public class UserServiceImpl implements UserService {
 	}
 	
 	@Override
-	public UserForm getUserById(String userId) {
-		User user = this.userRepo.findById(userId)
-				.orElseThrow(() -> new ResourceNotFoundException("User", "Id", String.valueOf(userId)));
-		return UserUtil.userToUserForm(user);
-	}
-
-	@Override
 	public List<UserForm> getAllUsers() {	
 		
 		System.out.println(userRepo);				//Object of org.springframework.data.jpa.repository.support.SimpleJpaRepository
 		System.out.println(userRepo.getClass().getName());	//com.sun.proxy.$Proxy128 number changes after context reloading
 		List<User> userList = this.userRepo.findAll(); 
-		return UserUtil.getUserFormListFromUserList(userList);
+		List<UserForm> userFormList = UserUtil.getUserFormListFromUserList(userList);
+		if(userFormList == null) {
+			throw new ResourceNotFoundException("User");
+		}
+		return userFormList;
 	}
 
 	@Override
@@ -69,7 +72,7 @@ public class UserServiceImpl implements UserService {
 		User user = null;
 		switch(userAttr) {
 			case USER_ID:
-				user = this.userRepo.findById(userAttrValue)
+				user = this.userRepo.findById(Integer.parseInt(userAttrValue))
 					.orElseThrow(() -> new ResourceNotFoundException("User", "Id", userAttrValue));
 				break;
 			case USER_EMAIL:

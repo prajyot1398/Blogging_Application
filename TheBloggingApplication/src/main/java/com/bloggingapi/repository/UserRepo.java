@@ -10,9 +10,9 @@ import com.bloggingapi.entity.User;
 //JpaRepository<T, ID>	:- T is the Entity class and ID is class/data type of primary key.
 
 
-public interface UserRepo extends JpaRepository<User, String> {
+public interface UserRepo extends JpaRepository<User, Integer> {
 
 	Optional<User> findByUserEmail(String userEmail);
 	
-	
+	boolean existsUserByUserEmail(String userEmail); 
 }

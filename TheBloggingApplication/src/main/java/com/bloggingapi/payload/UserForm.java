@@ -16,7 +16,7 @@ import lombok.Setter;
 @Setter
 public class UserForm {
 	
-	private String userId;
+	private Integer userId;
 	
 	@NotEmpty(message = "Name Of User Must Not Be Blank Or Null !!")
 	private String userName;

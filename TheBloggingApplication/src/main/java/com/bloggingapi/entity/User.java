@@ -21,12 +21,12 @@ public class User {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name="id")
-	private String userId;
+	private Integer userId;
 	
 	@Column(name="name", nullable = false, length = 100)
 	private String userName;
 	
-	@Column(name="email", nullable = false, length = 100)
+	@Column(name="email", unique = true, nullable = false, length = 100)
 	private String userEmail;
 	
 	@Column(name="about")

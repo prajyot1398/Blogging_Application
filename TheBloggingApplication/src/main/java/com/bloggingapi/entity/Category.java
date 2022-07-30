@@ -9,6 +9,7 @@ import javax.persistence.Table;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
@@ -16,18 +17,17 @@ import lombok.Setter;
 @Table(name = "blogging_categories")
 @Getter
 @Setter
-@AllArgsConstructor
-@RequiredArgsConstructor
+@NoArgsConstructor
 public class Category {
 	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "category_id", nullable = false, length = 10)
-	private final String categoryId;
+	@Column(name = "category_id")
+	private Integer categoryId;
 	
-	@Column(name= "category_name", nullable = false, length = 100)
-	private final String categoryName;
+	@Column(name = "category_name", unique = true, nullable = false, length = 100)
+	private String categoryName;
 	
 	@Column(name = "category_description", length = 500)
-	private String categoryyDescription;
+	private String categoryDescription;
 }

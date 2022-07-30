@@ -11,8 +11,6 @@ public interface UserService {
 	
 	UserForm updateUser(UserForm userForm, String userAttrValue, UserAttrsEnum userAttr);
 	
-	UserForm getUserById(String userId);
-	
 	List<UserForm> getAllUsers();
 	
 	void deleteUser(String userAttrValue, UserAttrsEnum userAttr);

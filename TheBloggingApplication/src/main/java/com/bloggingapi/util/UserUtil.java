@@ -52,8 +52,9 @@ public class UserUtil {
 	
 	public static List<User> getUserListFromUserFormList(List<UserForm> formList) {
 		
-		List<User> userList = new ArrayList<User>();
-		if(formList != null) {
+		//List<User> userList = new ArrayList<User>(); //If used normal array to array copy
+		List<User> userList = null;		//If used Stream API
+		if(formList != null && formList.size() > 0) {
 			//Method 1
 			/*
 			 * for(UserForm form : formList) { userList.add(userFormToUser(form)); }
@@ -66,9 +67,11 @@ public class UserUtil {
 	}
 	
 	public static List<UserForm> getUserFormListFromUserList(List<User> userList) {
-		List<UserForm> formList = new ArrayList<UserForm>();
 		
-		if(userList != null) {
+		//List<UserForm> formList = new ArrayList<UserForm>();	//If used normal copying
+		List<UserForm> formList = null;		//If used Stream API
+		
+		if(userList != null && userList.size() > 0) {
 			//Method 1
 			/*
 			 * for(User user : userList) { formList.add(userToUserForm(user)); }
