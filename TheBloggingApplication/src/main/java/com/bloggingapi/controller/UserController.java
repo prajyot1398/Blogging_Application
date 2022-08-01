@@ -34,9 +34,17 @@ public class UserController {
 	@PostMapping("/")
 	public ResponseEntity<ApiResponse> createUser(@Valid @RequestBody UserForm userForm) {
 		
+		String responseMessage = null;
+		if(userForm.getUserId() != null) {
+			responseMessage = "You have provided userId in POST Request, it might "
+					+ "override existing user if present with same id. It won't consider"
+					+ " userId if user not already exists as ids are auto-incremented";
+		}else {
+			responseMessage = "User created successfully !!"; 
+		}
 		userForm = this.userService.createUser(userForm);
 		return new ResponseEntity<ApiResponse>(
-				new ApiResponseWithObject("User created successfully !!" ,true, userForm) ,HttpStatus.CREATED);
+				new ApiResponseWithObject(responseMessage, true, userForm) ,HttpStatus.CREATED);
 	}
 	
 	/*

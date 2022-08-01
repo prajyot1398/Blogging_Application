@@ -34,8 +34,16 @@ public class CategoryController {
 	@PostMapping("/")
 	public ResponseEntity<ApiResponse> createCategory(@Valid @RequestBody CategoryForm categoryForm) {
 		
+		String responseMessage = null;
+		if(categoryForm.getCategoryId() != null) {
+			responseMessage = "You have provided categoryId in POST Request, it might "
+					+ "override existing category if present with same id. It won't consider"
+					+ " categoryId if category not already exists as ids are auto-incremented";
+		}else {
+			responseMessage = "Category Created Successfully !!"; 
+		}
 		categoryForm = this.categoryService.createCategory(categoryForm);
-		return new ResponseEntity<ApiResponse>(new ApiResponseWithObject("Category Created Successfully !!", true, categoryForm), HttpStatus.CREATED);
+		return new ResponseEntity<ApiResponse>(new ApiResponseWithObject(responseMessage, true, categoryForm), HttpStatus.CREATED);
 	}
 	
 	//GET : Get all the categories
@@ -70,7 +78,7 @@ public class CategoryController {
 	//PUT : Update single category based on name or id.
 	@PutMapping("{categoryAttr}/{categoryAttrValue}")
 	public ResponseEntity<ApiResponse> updateCategory(@PathVariable("categoryAttr") String categoryAttr, 
-			@PathVariable("categoryAttrValue") String categoryAttrValue, @RequestBody CategoryForm form) {
+			@PathVariable("categoryAttrValue") String categoryAttrValue, @Valid @RequestBody CategoryForm form) {
 		
 		CategoryAttrsEnum attr = null;
 		if(categoryAttr.equals("id")) {
