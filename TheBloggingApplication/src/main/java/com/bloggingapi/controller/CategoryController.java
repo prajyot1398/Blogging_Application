@@ -19,9 +19,11 @@ import org.springframework.web.bind.annotation.RestController;
 import com.bloggingapi.blogenum.CategoryAttrsEnum;
 import com.bloggingapi.exception.InvalidFieldException;
 import com.bloggingapi.payload.CategoryForm;
+import com.bloggingapi.payload.PostForm;
 import com.bloggingapi.payload.apiresponse.ApiResponse;
 import com.bloggingapi.payload.apiresponse.ApiResponseWithObject;
 import com.bloggingapi.service.CategoryService;
+import com.bloggingapi.service.PostService;
 
 @RestController
 @RequestMapping("/api/category")
@@ -29,6 +31,9 @@ public class CategoryController {
 	
 	@Autowired
 	private CategoryService categoryService;
+	
+	@Autowired
+	private PostService postService;
 	
 	//POST : Create Category
 	@PostMapping("/")
@@ -60,15 +65,7 @@ public class CategoryController {
 	public ResponseEntity<ApiResponse> getCategory(@PathVariable("categoryAttr") String categoryAttr, 
 				@PathVariable("categoryAttrValue") String categoryAttrValue) {
 		
-		CategoryAttrsEnum attr = null;
-		if(categoryAttr.equals("id")) {
-			attr = CategoryAttrsEnum.CATEGORY_ID;
-		} else if(categoryAttr.equals("name")) {
-			attr = CategoryAttrsEnum.CATEGORY_NAME;
-		} else {
-			throw new InvalidFieldException(categoryAttr, "Category", List.of("id", "name"));
-		}
-		
+		CategoryAttrsEnum attr = getCategoryAttrEnumFromCategoryAttrString(categoryAttr);
 		CategoryForm form = this.categoryService.getCategory(categoryAttrValue, attr);
 		return new ResponseEntity<ApiResponse>(
 				new ApiResponseWithObject("Category With : "+categoryAttr+" And Value : "+categoryAttrValue, true, form), HttpStatus.OK
@@ -80,15 +77,7 @@ public class CategoryController {
 	public ResponseEntity<ApiResponse> updateCategory(@PathVariable("categoryAttr") String categoryAttr, 
 			@PathVariable("categoryAttrValue") String categoryAttrValue, @Valid @RequestBody CategoryForm form) {
 		
-		CategoryAttrsEnum attr = null;
-		if(categoryAttr.equals("id")) {
-			attr = CategoryAttrsEnum.CATEGORY_ID;
-		} else if(categoryAttr.equals("name")) {
-			attr = CategoryAttrsEnum.CATEGORY_NAME;
-		} else {
-			throw new InvalidFieldException(categoryAttr, "Category", List.of("id", "name"));
-		}
-		
+		CategoryAttrsEnum attr = getCategoryAttrEnumFromCategoryAttrString(categoryAttr);
 		form = this.categoryService.updateCategory(form, categoryAttrValue, attr);
 		return new ResponseEntity<ApiResponse>(
 				new ApiResponseWithObject("Category With : "+categoryAttr+" And Value : "+categoryAttrValue+" is updated.", true, form), HttpStatus.OK
@@ -100,6 +89,28 @@ public class CategoryController {
 	public ResponseEntity<ApiResponse> deleteCategory(@PathVariable("categoryAttr") String categoryAttr, 
 			@PathVariable("categoryAttrValue") String categoryAttrValue) {
 		
+		CategoryAttrsEnum attr = getCategoryAttrEnumFromCategoryAttrString(categoryAttr);
+		this.categoryService.deleteCategory(categoryAttrValue, attr);
+		
+		return new ResponseEntity<ApiResponse>(
+				new ApiResponse("Category Delete Successfully !!", true), HttpStatus.OK
+				);
+	}
+	
+	@GetMapping("{categoryAttr}/{categoryAttrValue}/post")
+	public ResponseEntity<ApiResponse> getPostsByCategory(@PathVariable("categoryAttr") String categoryAttr, 
+			@PathVariable("categoryAttrValue") String categoryAttrValue) {
+	
+		ResponseEntity<ApiResponse> responseEntity = getCategory(categoryAttr, categoryAttrValue);	
+		ApiResponse apiResponse = responseEntity.getBody();
+		CategoryForm categoryForm = (CategoryForm)((ApiResponseWithObject) apiResponse).getObject();
+		List<PostForm> postFormList = this.postService.getPostsByCategory(categoryForm, categoryAttr, categoryAttrValue);
+		return new ResponseEntity<ApiResponse>(
+				new ApiResponseWithObject("Posts Of Category With "+categoryAttr+" : "+categoryAttrValue,
+						true, postFormList), HttpStatus.OK);
+	}
+	
+	private CategoryAttrsEnum getCategoryAttrEnumFromCategoryAttrString(String categoryAttr) {
 		CategoryAttrsEnum attr = null;
 		if(categoryAttr.equals("id")) {
 			attr = CategoryAttrsEnum.CATEGORY_ID;
@@ -108,11 +119,6 @@ public class CategoryController {
 		} else {
 			throw new InvalidFieldException(categoryAttr, "Category", List.of("id", "name"));
 		}
-		
-		this.categoryService.deleteCategory(categoryAttrValue, attr);
-		
-		return new ResponseEntity<ApiResponse>(
-				new ApiResponse("Category Delete Successfully !!", true), HttpStatus.OK
-				);
+		return attr;
 	}
 }

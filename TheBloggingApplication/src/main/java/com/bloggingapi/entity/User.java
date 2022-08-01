@@ -40,6 +40,6 @@ public class User {
 	@Column(name="password")
 	private String userPassword;
 	
-	@OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+	@OneToMany(mappedBy = "user", fetch = FetchType.EAGER)
 	private Set<Post> postsSet = new HashSet<>();
 }

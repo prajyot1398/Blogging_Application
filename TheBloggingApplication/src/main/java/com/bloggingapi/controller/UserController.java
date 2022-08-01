@@ -18,17 +18,22 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.bloggingapi.blogenum.UserAttrsEnum;
 import com.bloggingapi.exception.InvalidFieldException;
+import com.bloggingapi.payload.PostForm;
 import com.bloggingapi.payload.UserForm;
 import com.bloggingapi.payload.apiresponse.ApiResponse;
 import com.bloggingapi.payload.apiresponse.ApiResponseWithObject;
+import com.bloggingapi.service.PostService;
 import com.bloggingapi.service.UserService;
 
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping("/api/user")
 public class UserController {
 	
 	@Autowired
 	private UserService userService;
+	
+	@Autowired
+	private PostService postService;
 	
 	//POST :- Create User
 	@PostMapping("/")
@@ -68,14 +73,7 @@ public class UserController {
 	@GetMapping("/{userAttr}/{userAttrValue}")
 	public ResponseEntity<ApiResponse> getUser(@PathVariable("userAttr") String userAttr,
 			@PathVariable("userAttrValue") String userAttrValue) {
-		UserAttrsEnum attr = UserAttrsEnum.USER_ID;
-		if(userAttr.equals("id")) {
-			attr = UserAttrsEnum.USER_ID;
-		} else if(userAttr.equals("email")) {
-			attr = UserAttrsEnum.USER_EMAIL;
-		} else {
-			throw new InvalidFieldException(userAttr, "User", List.of("id", "email"));
-		}
+		UserAttrsEnum attr = getUserAttrEnumFromUserAttrString(userAttr);
 		UserForm userForm = this.userService.getUser(userAttrValue, attr);
 		return new ResponseEntity<ApiResponse>(
 				new ApiResponseWithObject("User with "+userAttr+" : "+userAttrValue, true, userForm), HttpStatus.OK);
@@ -85,14 +83,7 @@ public class UserController {
 	public ResponseEntity<ApiResponse> updateUser(@Valid @RequestBody UserForm userForm ,
 				@PathVariable("userAttr") String userAttr,
 				@PathVariable("userAttrValue") String userAttrValue) {
-		UserAttrsEnum attr = UserAttrsEnum.USER_ID;
-		if(userAttr.equals("id")) {
-			attr = UserAttrsEnum.USER_ID;
-		} else if(userAttr.equals("email")) {
-			attr = UserAttrsEnum.USER_EMAIL;
-		} else {
-			throw new InvalidFieldException(userAttr, "User", List.of("id", "email"));
-		}
+		UserAttrsEnum attr = getUserAttrEnumFromUserAttrString(userAttr);
 		userForm = this.userService.updateUser(userForm, userAttrValue, attr);
 		return new ResponseEntity<ApiResponse>(
 				new ApiResponseWithObject("User with "+userAttr+" : "+userAttrValue+" is updated.",
@@ -103,6 +94,26 @@ public class UserController {
 	@DeleteMapping("/{userAttr}/{userAttrValue}")
 	public ResponseEntity<ApiResponse> deleteUser(@PathVariable("userAttr") String userAttr,
 			@PathVariable("userAttrValue") String userAttrValue) {
+		UserAttrsEnum attr = getUserAttrEnumFromUserAttrString(userAttr);
+		this.userService.deleteUser(userAttrValue, attr);
+		//return ResponseEntity.ok(Map.of("message", "User Deleted Successfully !!"));
+		return new ResponseEntity<ApiResponse>(new ApiResponse("User Deleted Successfully !!", true) , HttpStatus.OK);
+	}
+	
+	@GetMapping("/{userAttr}/{userAttrValue}/post")
+	public ResponseEntity<ApiResponse> getPostForUser(@PathVariable("userAttr") String userAttr,
+			@PathVariable("userAttrValue") String userAttrValue) {
+		
+		ResponseEntity<ApiResponse> responseEntity = getUser(userAttr, userAttrValue);
+		ApiResponse apiResponse = responseEntity.getBody();
+		UserForm userForm = (UserForm)((ApiResponseWithObject) apiResponse).getObject();
+		List<PostForm> postFormList = this.postService.getPostsByUser(userForm, userAttr, userAttrValue);
+		return new ResponseEntity<ApiResponse>(
+				new ApiResponseWithObject("Posts Of User With "+userAttr+" : "+userAttrValue,
+						true, postFormList), HttpStatus.OK);
+	}
+	
+	private UserAttrsEnum getUserAttrEnumFromUserAttrString(String userAttr) {
 		UserAttrsEnum attr = UserAttrsEnum.USER_ID;
 		if(userAttr.equals("id")) {
 			attr = UserAttrsEnum.USER_ID;
@@ -111,8 +122,6 @@ public class UserController {
 		} else {
 			throw new InvalidFieldException(userAttr, "User", List.of("id", "email"));
 		}
-		this.userService.deleteUser(userAttrValue, attr);
-		//return ResponseEntity.ok(Map.of("message", "User Deleted Successfully !!"));
-		return new ResponseEntity<ApiResponse>(new ApiResponse("User Deleted Successfully !!", true) , HttpStatus.OK);
+		return attr;
 	}
 }

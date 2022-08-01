@@ -21,7 +21,8 @@ public class TheBloggingApplication extends SpringBootServletInitializer {
         String[] beanNames = ctx.getBeanDefinitionNames();
         Arrays.sort(beanNames);
         for (String beanName : beanNames) {
-        	if(beanName.equals("userController") || beanName.equals("categoryController"))
+        	if(beanName.equals("userController") || beanName.equals("categoryController")
+        			|| beanName.equals("postController"))
         		System.out.println(beanName);
         }
 	}

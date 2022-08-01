@@ -51,4 +51,9 @@ public class GlobalExceptionHandler {
 		
 		return new ResponseEntity<ApiResponse>(new ApiResponse(exp.getMessage(), false), HttpStatus.BAD_REQUEST);
 	}
+	
+	@ExceptionHandler(value = InvalidParentEntityException.class)
+	public ResponseEntity<ApiResponse> invalidParentEntityException(InvalidParentEntityException exp) {
+		return new ResponseEntity<ApiResponse>(new ApiResponse(exp.getMessage(), false), HttpStatus.BAD_REQUEST);
+	}
 }

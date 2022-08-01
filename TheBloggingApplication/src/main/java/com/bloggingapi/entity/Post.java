@@ -31,7 +31,7 @@ public class Post {
 	private String postTitle;
 	
 	@Column(name = "post_content", nullable = false, length = 10000)
-	private String postContetnt;
+	private String postContent;
 	
 	@Column(name = "post_image")
 	private String postImage;
