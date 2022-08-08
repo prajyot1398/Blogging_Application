@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.bloggingapi.blogenum.PaginationConstatnts;
 import com.bloggingapi.blogenum.UserAttrsEnum;
 import com.bloggingapi.exception.InvalidFieldException;
 import com.bloggingapi.payload.PostForm;
@@ -65,10 +66,10 @@ public class UserController {
 	//GET :- Get All Users
 	@GetMapping
 	public ResponseEntity<ApiResponse> getUsers(
-			@RequestParam(name = "pageNum", defaultValue = "0", required = false) Integer pageNum,
-			@RequestParam(name = "pageSize", defaultValue = "5", required = false) Integer pageSize,
-			@RequestParam(name = "sortColumn", defaultValue = "addedDate", required = false) String sortColumn,
-			@RequestParam(name = "sortAsc", defaultValue = "false", required = false) boolean sortAsc
+			@RequestParam(name = "pageNum", defaultValue = PaginationConstatnts.PAGE_NUM , required = false) Integer pageNum,
+			@RequestParam(name = "pageSize", defaultValue = PaginationConstatnts.PAGE_SIZE, required = false) Integer pageSize,
+			@RequestParam(name = "sortColumn", defaultValue = PaginationConstatnts.SORT_COLUMN, required = false) String sortColumn,
+			@RequestParam(name = "sortAsc", defaultValue = PaginationConstatnts.SORT_ASC, required = false) boolean sortAsc
 			) {
 			
 		PaginationWithContent<List<UserForm>> listUsers = this.userService.getAllUsers(pageNum, pageSize, sortColumn, sortAsc);
@@ -85,6 +86,21 @@ public class UserController {
 		return new ResponseEntity<ApiResponse>(
 				new ApiResponseWithObject<UserForm>("User with "+userAttr+" : "+userAttrValue, true, userForm), HttpStatus.OK);
 	}
+	
+	@GetMapping("/search")
+	public ResponseEntity<ApiResponse> searchUserByKeyword(
+			@RequestParam(name = "searchName", required = true) String searchName,
+			@RequestParam(name = "pageNum", defaultValue = PaginationConstatnts.PAGE_NUM, required = false) Integer pageNum,
+			@RequestParam(name = "pageSize", defaultValue = PaginationConstatnts.PAGE_SIZE, required = false) Integer pageSize,
+			@RequestParam(name = "sortColumn", defaultValue = PaginationConstatnts.SORT_COLUMN, required = false) String sortColumn,
+			@RequestParam(name = "sortAsc", defaultValue = PaginationConstatnts.SORT_ASC, required = false) boolean sortAsc
+			) {
+		
+		PaginationWithContent<List<UserForm>> pair = this.userService.searchUserByKeyword(searchName,pageNum, pageSize, sortColumn, sortAsc);
+		return new ResponseEntity<ApiResponse>(
+				new ApiResponseWithObject<PaginationWithContent<List<UserForm>>>("List Of Users Containig "+searchName+" In The UserName.", true, pair), HttpStatus.OK);
+	}
+	
 	//PUT :- Update User based on Id or Email
 	@PutMapping("/{userAttr}/{userAttrValue}")
 	public ResponseEntity<ApiResponse> updateUser(@Valid @RequestBody UserForm userForm ,
@@ -110,10 +126,10 @@ public class UserController {
 	@GetMapping("/{userAttr}/{userAttrValue}/post")
 	public ResponseEntity<ApiResponse> getPostForUser(@PathVariable("userAttr") String userAttr,
 			@PathVariable("userAttrValue") String userAttrValue,
-			@RequestParam(name = "pageNum", defaultValue = "0", required = false) Integer pageNum,
-			@RequestParam(name = "pageSize", defaultValue = "5", required = false) Integer pageSize,
-			@RequestParam(name = "sortColumn", defaultValue = "addedDate", required = false) String sortColumn,
-			@RequestParam(name = "sortAsc", defaultValue = "false", required = false) boolean sortAsc
+			@RequestParam(name = "pageNum", defaultValue = PaginationConstatnts.PAGE_NUM, required = false) Integer pageNum,
+			@RequestParam(name = "pageSize", defaultValue = PaginationConstatnts.PAGE_SIZE, required = false) Integer pageSize,
+			@RequestParam(name = "sortColumn", defaultValue = PaginationConstatnts.SORT_COLUMN, required = false) String sortColumn,
+			@RequestParam(name = "sortAsc", defaultValue = PaginationConstatnts.SORT_ASC, required = false) boolean sortAsc
 			) {
 		
 		ResponseEntity<ApiResponse> responseEntity = getUser(userAttr, userAttrValue);

@@ -100,4 +100,21 @@ public class UserServiceImpl implements UserService {
 		User user = getUserFromUserAttr(userAttr, userAttrValue);
 		return UserUtil.userToUserForm(user);
 	}
+
+	@Override
+	public PaginationWithContent<List<UserForm>> searchUserByKeyword(String keyword, 
+			Integer pageNum, Integer pageSize,
+			String sortColumn, boolean sortAsc) {
+		
+		Pageable pagination = PaginationForm.getPagination(pageNum, pageSize, sortColumn, sortAsc);
+		Page<User> pageForm = this.userRepo.findByUserNameContaining(keyword, pagination); 
+		List<User> userList = pageForm.getContent();
+		List<UserForm> userFormList = UserUtil.getUserFormListFromUserList(userList);
+		if(userFormList == null) {
+			throw new ResourceNotFoundException("User", "Username Containing", keyword);
+		}
+		
+		PaginationForm paginationForm = PaginationForm.getPaginationFormFromPage(pageForm, sortColumn, sortAsc);
+		return PaginationWithContent.of(userFormList, paginationForm);
+	}
 }

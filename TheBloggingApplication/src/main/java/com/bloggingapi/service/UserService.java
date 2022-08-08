@@ -15,6 +15,10 @@ public interface UserService {
 	PaginationWithContent<List<UserForm>> getAllUsers(Integer pageNum, Integer pageSize,
 			String sortColumn, boolean sortAsc);
 	
+	PaginationWithContent<List<UserForm>> searchUserByKeyword(String keyword,
+			Integer pageNum, Integer pageSize,
+			String sortColumn, boolean sortAsc);
+	
 	void deleteUser(String userAttrValue, UserAttrsEnum userAttr);
 
 	UserForm getUser(String userAttrValue, UserAttrsEnum userAttr);

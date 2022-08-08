@@ -157,8 +157,13 @@ public class PostServiceImpl implements PostService {
 			final String sortColumn, final boolean sortAsc) {
 		
 		Pageable pagination = PaginationForm.getPagination(pageNum, pageSize, sortColumn, sortAsc);
-		
-		return null;
+		Page<Post> pageForm = this.postRepo.findByPostTitleContaining(keyWord, pagination);
+		List<Post> postList = pageForm.getContent();
+		if(postList == null || postList.isEmpty())
+			throw new ResourceNotFoundException("Posts", "Title Containing", keyWord);
+		List<PostForm> postFormList = PostUtil.getPostFormListFromPostList(postList);
+		PaginationForm paginationForm = PaginationForm.getPaginationFormFromPage(pageForm, sortColumn, sortAsc);
+		return PaginationWithContent.of(postFormList, paginationForm);
 	}
 	
 	private Post getPostFromPostAttr(PostAttrsEnum postAttr, String postAttrValue) {

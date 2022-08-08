@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.bloggingapi.blogenum.CategoryAttrsEnum;
+import com.bloggingapi.blogenum.PaginationConstatnts;
 import com.bloggingapi.exception.InvalidFieldException;
 import com.bloggingapi.payload.CategoryForm;
 import com.bloggingapi.payload.PostForm;
@@ -103,10 +104,10 @@ public class CategoryController {
 	@GetMapping("{categoryAttr}/{categoryAttrValue}/post")
 	public ResponseEntity<ApiResponse> getPostsByCategory(@PathVariable("categoryAttr") String categoryAttr, 
 			@PathVariable("categoryAttrValue") String categoryAttrValue, 
-			@RequestParam(name = "pageNum", defaultValue = "0", required = false) Integer pageNum,
-			@RequestParam(name = "pageSize", defaultValue = "5", required = false) Integer pageSize,
-			@RequestParam(name = "sortColumn", defaultValue = "addedDate", required = false) String sortColumn,
-			@RequestParam(name = "sortAsc", defaultValue = "false", required = false) boolean sortAsc
+			@RequestParam(name = "pageNum", defaultValue = PaginationConstatnts.PAGE_NUM, required = false) Integer pageNum,
+			@RequestParam(name = "pageSize", defaultValue = PaginationConstatnts.PAGE_SIZE, required = false) Integer pageSize,
+			@RequestParam(name = "sortColumn", defaultValue = PaginationConstatnts.SORT_COLUMN, required = false) String sortColumn,
+			@RequestParam(name = "sortAsc", defaultValue = PaginationConstatnts.SORT_ASC, required = false) boolean sortAsc
 			) {
 	
 		ResponseEntity<ApiResponse> responseEntity = getCategory(categoryAttr, categoryAttrValue);	

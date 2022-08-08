@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.bloggingapi.blogenum.PaginationConstatnts;
 import com.bloggingapi.blogenum.PostAttrsEnum;
 import com.bloggingapi.exception.InvalidFieldException;
 import com.bloggingapi.payload.PostForm;
@@ -54,15 +55,29 @@ public class PostController {
 	//GET :- Get All The Posts
 	@GetMapping
 	public ResponseEntity<ApiResponse> getAllPosts(
-			@RequestParam(name = "pageNum", defaultValue = "0", required = false) Integer pageNum,
-			@RequestParam(name = "pageSize", defaultValue = "5", required = false) Integer pageSize,
-			@RequestParam(name = "sortColumn", defaultValue = "addedDate", required = false) String sortColumn,
-			@RequestParam(name = "sortAsc", defaultValue = "false", required = false) boolean sortAsc
+			@RequestParam(name = "pageNum", defaultValue = PaginationConstatnts.PAGE_NUM , required = false) Integer pageNum,
+			@RequestParam(name = "pageSize", defaultValue = PaginationConstatnts.PAGE_SIZE, required = false) Integer pageSize,
+			@RequestParam(name = "sortColumn", defaultValue = PaginationConstatnts.SORT_COLUMN, required = false) String sortColumn,
+			@RequestParam(name = "sortAsc", defaultValue = PaginationConstatnts.SORT_ASC, required = false) boolean sortAsc
 			) {
 		
 		PaginationWithContent<List<PostForm>> pair = this.postService.getAllPosts(pageNum, pageSize, sortColumn, sortAsc);
 		return new ResponseEntity<ApiResponse>(
 				new ApiResponseWithObject<PaginationWithContent<List<PostForm>>>("List Of Posts.", true, pair), HttpStatus.OK);
+	}
+	
+	@GetMapping("/search")
+	public ResponseEntity<ApiResponse> searchPostByKeyword(
+			@RequestParam(name = "searchName", required = true) String searchName,
+			@RequestParam(name = "pageNum", defaultValue = PaginationConstatnts.PAGE_NUM, required = false) Integer pageNum,
+			@RequestParam(name = "pageSize", defaultValue = PaginationConstatnts.PAGE_SIZE, required = false) Integer pageSize,
+			@RequestParam(name = "sortColumn", defaultValue = PaginationConstatnts.SORT_COLUMN, required = false) String sortColumn,
+			@RequestParam(name = "sortAsc", defaultValue = PaginationConstatnts.SORT_ASC, required = false) boolean sortAsc
+			) {
+		
+		PaginationWithContent<List<PostForm>> pair = this.postService.searchPostByKeyword(searchName,pageNum, pageSize, sortColumn, sortAsc);
+		return new ResponseEntity<ApiResponse>(
+				new ApiResponseWithObject<PaginationWithContent<List<PostForm>>>("List Of Posts Containig "+searchName+" In The Title.", true, pair), HttpStatus.OK);
 	}
 	
 	//GET :- Get Post Based On Attr
