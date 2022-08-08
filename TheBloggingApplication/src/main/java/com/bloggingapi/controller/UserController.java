@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.bloggingapi.blogenum.UserAttrsEnum;
@@ -22,6 +23,7 @@ import com.bloggingapi.payload.PostForm;
 import com.bloggingapi.payload.UserForm;
 import com.bloggingapi.payload.apiresponse.ApiResponse;
 import com.bloggingapi.payload.apiresponse.ApiResponseWithObject;
+import com.bloggingapi.payload.multi.PaginationWithContent;
 import com.bloggingapi.service.PostService;
 import com.bloggingapi.service.UserService;
 
@@ -49,7 +51,7 @@ public class UserController {
 		}
 		userForm = this.userService.createUser(userForm);
 		return new ResponseEntity<ApiResponse>(
-				new ApiResponseWithObject(responseMessage, true, userForm) ,HttpStatus.CREATED);
+				new ApiResponseWithObject<UserForm>(responseMessage, true, userForm) ,HttpStatus.CREATED);
 	}
 	
 	/*
@@ -61,12 +63,17 @@ public class UserController {
 		return new ResponseEntity<List<UserForm>>(listUsers, HttpStatus.OK);
 	}*/
 	//GET :- Get All Users
-	@GetMapping("/")
-	public ResponseEntity<ApiResponse> getUsers() {
+	@GetMapping
+	public ResponseEntity<ApiResponse> getUsers(
+			@RequestParam(name = "pageNum", defaultValue = "0", required = false) Integer pageNum,
+			@RequestParam(name = "pageSize", defaultValue = "5", required = false) Integer pageSize,
+			@RequestParam(name = "sortColumn", defaultValue = "addedDate", required = false) String sortColumn,
+			@RequestParam(name = "sortAsc", defaultValue = "false", required = false) boolean sortAsc
+			) {
 			
-		List<UserForm> listUsers = this.userService.getAllUsers();
+		PaginationWithContent<List<UserForm>> listUsers = this.userService.getAllUsers(pageNum, pageSize, sortColumn, sortAsc);
 		return new ResponseEntity<ApiResponse>(
-				new ApiResponseWithObject( "List of users.", true, listUsers), HttpStatus.OK);
+				new ApiResponseWithObject<PaginationWithContent<List<UserForm>>>( "List of users.", true, listUsers), HttpStatus.OK);
 	}
 	
 	//GET :- Get Single User Based On Id or Email
@@ -76,7 +83,7 @@ public class UserController {
 		UserAttrsEnum attr = getUserAttrEnumFromUserAttrString(userAttr);
 		UserForm userForm = this.userService.getUser(userAttrValue, attr);
 		return new ResponseEntity<ApiResponse>(
-				new ApiResponseWithObject("User with "+userAttr+" : "+userAttrValue, true, userForm), HttpStatus.OK);
+				new ApiResponseWithObject<UserForm>("User with "+userAttr+" : "+userAttrValue, true, userForm), HttpStatus.OK);
 	}
 	//PUT :- Update User based on Id or Email
 	@PutMapping("/{userAttr}/{userAttrValue}")
@@ -86,7 +93,7 @@ public class UserController {
 		UserAttrsEnum attr = getUserAttrEnumFromUserAttrString(userAttr);
 		userForm = this.userService.updateUser(userForm, userAttrValue, attr);
 		return new ResponseEntity<ApiResponse>(
-				new ApiResponseWithObject("User with "+userAttr+" : "+userAttrValue+" is updated.",
+				new ApiResponseWithObject<UserForm>("User with "+userAttr+" : "+userAttrValue+" is updated.",
 						true, userForm), HttpStatus.OK);
 	}
 	
@@ -102,14 +109,21 @@ public class UserController {
 	
 	@GetMapping("/{userAttr}/{userAttrValue}/post")
 	public ResponseEntity<ApiResponse> getPostForUser(@PathVariable("userAttr") String userAttr,
-			@PathVariable("userAttrValue") String userAttrValue) {
+			@PathVariable("userAttrValue") String userAttrValue,
+			@RequestParam(name = "pageNum", defaultValue = "0", required = false) Integer pageNum,
+			@RequestParam(name = "pageSize", defaultValue = "5", required = false) Integer pageSize,
+			@RequestParam(name = "sortColumn", defaultValue = "addedDate", required = false) String sortColumn,
+			@RequestParam(name = "sortAsc", defaultValue = "false", required = false) boolean sortAsc
+			) {
 		
 		ResponseEntity<ApiResponse> responseEntity = getUser(userAttr, userAttrValue);
 		ApiResponse apiResponse = responseEntity.getBody();
-		UserForm userForm = (UserForm)((ApiResponseWithObject) apiResponse).getObject();
-		List<PostForm> postFormList = this.postService.getPostsByUser(userForm, userAttr, userAttrValue);
+		@SuppressWarnings("unchecked")
+		UserForm userForm = ((ApiResponseWithObject<UserForm>) apiResponse).getResponseObject();
+		PaginationWithContent<List<PostForm>> postFormList = this.postService.getPostsByUser(userForm, 
+				userAttr, userAttrValue, pageNum, pageSize, sortColumn, sortAsc);
 		return new ResponseEntity<ApiResponse>(
-				new ApiResponseWithObject("Posts Of User With "+userAttr+" : "+userAttrValue,
+				new ApiResponseWithObject<PaginationWithContent<List<PostForm>>>("Posts Of User With "+userAttr+" : "+userAttrValue,
 						true, postFormList), HttpStatus.OK);
 	}
 	

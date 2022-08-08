@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 import org.modelmapper.ModelMapper;
 
 import java.util.ArrayList;
+import java.util.Date;
 
 import com.bloggingapi.entity.User;
 import com.bloggingapi.payload.UserForm;
@@ -36,6 +37,7 @@ public class UserUtil {
 	public static UserForm userToUserForm(User user) {
 		
 		UserForm userForm = new ModelMapper().map(user, UserForm.class);
+		updateNullValuesInUserFormFromUser(userForm, user);
 		return userForm;
 		/*if(user != null) {
 			UserForm form = new UserForm();
@@ -99,6 +101,9 @@ public class UserUtil {
 		if(form.getUserPassword() == null) {
 			form.setUserPassword(user.getUserPassword());
 		}
+		if(form.getUserAddedDate() == null) {
+			form.setUserAddedDate(user.getAddedDate());
+		}
 	}
 	
 	public static void updateNullValuesInUserFromUserForm(UserForm form, User user) {
@@ -117,6 +122,14 @@ public class UserUtil {
 		}
 		if(user.getUserPassword() == null) {
 			user.setUserPassword(form.getUserPassword());
+		}
+		if(user.getAddedDate() == null) {
+			if(form.getUserAddedDate() != null) {
+				user.setAddedDate(form.getUserAddedDate());
+			}
+			else {
+				user.setAddedDate(new Date());
+			}
 		}
 	}
 }

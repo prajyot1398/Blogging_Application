@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.bloggingapi.blogenum.CategoryAttrsEnum;
@@ -22,6 +23,7 @@ import com.bloggingapi.payload.CategoryForm;
 import com.bloggingapi.payload.PostForm;
 import com.bloggingapi.payload.apiresponse.ApiResponse;
 import com.bloggingapi.payload.apiresponse.ApiResponseWithObject;
+import com.bloggingapi.payload.multi.PaginationWithContent;
 import com.bloggingapi.service.CategoryService;
 import com.bloggingapi.service.PostService;
 
@@ -48,7 +50,8 @@ public class CategoryController {
 			responseMessage = "Category Created Successfully !!"; 
 		}
 		categoryForm = this.categoryService.createCategory(categoryForm);
-		return new ResponseEntity<ApiResponse>(new ApiResponseWithObject(responseMessage, true, categoryForm), HttpStatus.CREATED);
+		return new ResponseEntity<ApiResponse>(
+				new ApiResponseWithObject<CategoryForm>(responseMessage, true, categoryForm), HttpStatus.CREATED);
 	}
 	
 	//GET : Get all the categories
@@ -57,7 +60,7 @@ public class CategoryController {
 		
 		List<CategoryForm> list = this.categoryService.getAllCategories();
 		return new ResponseEntity<ApiResponse>(
-				new ApiResponseWithObject("List Of Categories", true, list), HttpStatus.OK);
+				new ApiResponseWithObject<List<CategoryForm>>("List Of Categories", true, list), HttpStatus.OK);
 	}
 	
 	//GET : Get single category based on Id or Name
@@ -68,7 +71,7 @@ public class CategoryController {
 		CategoryAttrsEnum attr = getCategoryAttrEnumFromCategoryAttrString(categoryAttr);
 		CategoryForm form = this.categoryService.getCategory(categoryAttrValue, attr);
 		return new ResponseEntity<ApiResponse>(
-				new ApiResponseWithObject("Category With : "+categoryAttr+" And Value : "+categoryAttrValue, true, form), HttpStatus.OK
+				new ApiResponseWithObject<CategoryForm>("Category With : "+categoryAttr+" And Value : "+categoryAttrValue, true, form), HttpStatus.OK
 				);
 	}
 	
@@ -80,7 +83,7 @@ public class CategoryController {
 		CategoryAttrsEnum attr = getCategoryAttrEnumFromCategoryAttrString(categoryAttr);
 		form = this.categoryService.updateCategory(form, categoryAttrValue, attr);
 		return new ResponseEntity<ApiResponse>(
-				new ApiResponseWithObject("Category With : "+categoryAttr+" And Value : "+categoryAttrValue+" is updated.", true, form), HttpStatus.OK
+				new ApiResponseWithObject<CategoryForm>("Category With : "+categoryAttr+" And Value : "+categoryAttrValue+" is updated.", true, form), HttpStatus.OK
 				);
 	}
 	
@@ -99,14 +102,22 @@ public class CategoryController {
 	
 	@GetMapping("{categoryAttr}/{categoryAttrValue}/post")
 	public ResponseEntity<ApiResponse> getPostsByCategory(@PathVariable("categoryAttr") String categoryAttr, 
-			@PathVariable("categoryAttrValue") String categoryAttrValue) {
+			@PathVariable("categoryAttrValue") String categoryAttrValue, 
+			@RequestParam(name = "pageNum", defaultValue = "0", required = false) Integer pageNum,
+			@RequestParam(name = "pageSize", defaultValue = "5", required = false) Integer pageSize,
+			@RequestParam(name = "sortColumn", defaultValue = "addedDate", required = false) String sortColumn,
+			@RequestParam(name = "sortAsc", defaultValue = "false", required = false) boolean sortAsc
+			) {
 	
 		ResponseEntity<ApiResponse> responseEntity = getCategory(categoryAttr, categoryAttrValue);	
 		ApiResponse apiResponse = responseEntity.getBody();
-		CategoryForm categoryForm = (CategoryForm)((ApiResponseWithObject) apiResponse).getObject();
-		List<PostForm> postFormList = this.postService.getPostsByCategory(categoryForm, categoryAttr, categoryAttrValue);
+		@SuppressWarnings("unchecked")
+		CategoryForm categoryForm = ((ApiResponseWithObject<CategoryForm>)apiResponse).getResponseObject();
+		PaginationWithContent<List<PostForm>> postFormList = this.postService.getPostsByCategory(categoryForm, 
+				categoryAttr, categoryAttrValue, pageNum, pageSize, sortColumn, sortAsc);
+		
 		return new ResponseEntity<ApiResponse>(
-				new ApiResponseWithObject("Posts Of Category With "+categoryAttr+" : "+categoryAttrValue,
+				new ApiResponseWithObject<PaginationWithContent<List<PostForm>>>("Posts Of Category With "+categoryAttr+" : "+categoryAttrValue,
 						true, postFormList), HttpStatus.OK);
 	}
 	

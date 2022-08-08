@@ -36,8 +36,8 @@ public class Post {
 	@Column(name = "post_image")
 	private String postImage;
 	
-	@Column(name = "post_date", nullable = false)
-	private Date postAddedDate; 
+	@Column(name = "added_date", nullable = false)
+	private Date addedDate; 
 	
 	@ManyToOne
 	@JoinColumn(name = "category_id")

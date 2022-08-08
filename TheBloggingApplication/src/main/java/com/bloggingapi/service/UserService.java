@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.bloggingapi.blogenum.UserAttrsEnum;
 import com.bloggingapi.payload.UserForm;
+import com.bloggingapi.payload.multi.PaginationWithContent;
 
 public interface UserService {
 	
@@ -11,7 +12,8 @@ public interface UserService {
 	
 	UserForm updateUser(UserForm userForm, String userAttrValue, UserAttrsEnum userAttr);
 	
-	List<UserForm> getAllUsers();
+	PaginationWithContent<List<UserForm>> getAllUsers(Integer pageNum, Integer pageSize,
+			String sortColumn, boolean sortAsc);
 	
 	void deleteUser(String userAttrValue, UserAttrsEnum userAttr);
 

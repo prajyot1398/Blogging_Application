@@ -3,6 +3,10 @@ package com.bloggingapi.service.impl;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import com.bloggingapi.blogenum.PostAttrsEnum;
@@ -15,6 +19,8 @@ import com.bloggingapi.exception.ResourceNotFoundException;
 import com.bloggingapi.payload.CategoryForm;
 import com.bloggingapi.payload.PostForm;
 import com.bloggingapi.payload.UserForm;
+import com.bloggingapi.payload.multi.PaginationForm;
+import com.bloggingapi.payload.multi.PaginationWithContent;
 import com.bloggingapi.repository.CategoryRepo;
 import com.bloggingapi.repository.PostRepo;
 import com.bloggingapi.repository.UserRepo;
@@ -79,14 +85,20 @@ public class PostServiceImpl implements PostService {
 	}
 
 	@Override
-	public List<PostForm> getAllPosts() {
+	public PaginationWithContent<List<PostForm>> getAllPosts(final Integer pageNum, 
+			final Integer pageSize, final String sortColumn, final boolean sortAsc) {
 		
-		List<Post> posts = this.postRepo.findAll();
+		Pageable pagination = PaginationForm.getPagination(pageNum, pageSize, sortColumn, sortAsc);
+		
+		Page<Post> pageForm = this.postRepo.findAll(pagination);
+		List<Post> posts = pageForm.getContent();
 		List<PostForm> postFormList = PostUtil.getPostFormListFromPostList(posts);
 		if(postFormList == null) {
 			throw new ResourceNotFoundException("Posts");
 		}
-		return postFormList;
+		
+		PaginationForm paginationForm = PaginationForm.getPaginationFormFromPage(pageForm, sortColumn, sortAsc);
+		return PaginationWithContent.of(postFormList, paginationForm);
 	}
 
 	@Override
@@ -104,29 +116,48 @@ public class PostServiceImpl implements PostService {
 	}
 
 	@Override
-	public List<PostForm> getPostsByUser(UserForm userForm, String userAttr, String userAttrValue) {
+	public PaginationWithContent<List<PostForm>> getPostsByUser(UserForm userForm, 
+			String userAttr, String userAttrValue, 
+			final Integer pageNum, final Integer pageSize, 
+			final String sortColumn, final boolean sortAsc) {
 		
 		User user = UserUtil.userFormToUser(userForm);
-		List<Post> postList = this.postRepo.findByUser(user);
+		Pageable pagination = PaginationForm.getPagination(pageNum, pageSize, sortColumn, sortAsc);
+		Page<Post> pageForm = this.postRepo.findByUser(user, pagination);
+		List<Post> postList = pageForm.getContent();
 		if(postList == null || postList.isEmpty())
 			throw new ResourceNotFoundException("Posts",  "User "+userAttr, userAttrValue);
-		return PostUtil.getPostFormListFromPostList(postList);
+		
+		List<PostForm> postFormList = PostUtil.getPostFormListFromPostList(postList);
+		PaginationForm paginationForm = PaginationForm.getPaginationFormFromPage(pageForm, sortColumn, sortAsc);
+		return PaginationWithContent.of(postFormList, paginationForm);
 	}
 
 	@Override
-	public List<PostForm> getPostsByCategory(CategoryForm categoryForm, String categoryAttr, String categoryAttrValue) {
+	public PaginationWithContent<List<PostForm>> getPostsByCategory(CategoryForm categoryForm, 
+			String categoryAttr, String categoryAttrValue, 
+			final Integer pageNum, final Integer pageSize, 
+			final String sortColumn, final boolean sortAsc) {
 		
 		Category category = CategoryUtil.categoryFormToCategory(categoryForm);
-		List<Post> postList = this.postRepo.findByCategory(category);
+		Pageable pagination = PaginationForm.getPagination(pageNum, pageSize, sortColumn, sortAsc);
+		Page<Post> pageForm = this.postRepo.findByCategory(category, pagination);
+		List<Post> postList = pageForm.getContent();
 		if(postList == null || postList.isEmpty())
 			throw new ResourceNotFoundException("Posts", "Category "+categoryAttr, categoryAttrValue);
 				
-		return PostUtil.getPostFormListFromPostList(postList);
+		List<PostForm> postFormList = PostUtil.getPostFormListFromPostList(postList);
+		PaginationForm paginationForm = PaginationForm.getPaginationFormFromPage(pageForm, sortColumn, sortAsc);
+		return PaginationWithContent.of(postFormList, paginationForm);
 	}
 
 	@Override
-	public List<PostForm> searchPostByKeyword(String keyWord) {
-		// TODO Auto-generated method stub
+	public PaginationWithContent<List<PostForm>> searchPostByKeyword(String keyWord, 
+			final Integer pageNum, final Integer pageSize, 
+			final String sortColumn, final boolean sortAsc) {
+		
+		Pageable pagination = PaginationForm.getPagination(pageNum, pageSize, sortColumn, sortAsc);
+		
 		return null;
 	}
 	
@@ -141,7 +172,7 @@ public class PostServiceImpl implements PostService {
 				break;
 			case POST_TITLE:
 				post = this.postRepo.findByPostTitle(postAttrValue)
-					.orElseThrow(() -> new ResourceNotFoundException("Post", "Id", postAttrValue));
+					.orElseThrow(() -> new ResourceNotFoundException("Post", "Title", postAttrValue));
 				break;
 		}
 		

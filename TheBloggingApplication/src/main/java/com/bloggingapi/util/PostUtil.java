@@ -56,7 +56,7 @@ public class PostUtil {
 			form.setPostContent(post.getPostContent());
 		}
 		if(form.getPostAddedDate() == null) {
-			form.setPostAddedDate(post.getPostAddedDate());
+			form.setPostAddedDate(post.getAddedDate());
 		}
 		if(form.getPostImage() == null && post.getPostImage() != null) {
 			form.setPostImage(post.getPostImage());
@@ -80,11 +80,11 @@ public class PostUtil {
 		if(post.getPostContent() == null) {
 			post.setPostContent(form.getPostContent());
 		}
-		if(post.getPostAddedDate() == null) {
+		if(post.getAddedDate() == null) {
 			if(form.getPostAddedDate() != null)
-				post.setPostAddedDate(form.getPostAddedDate());
+				post.setAddedDate(form.getPostAddedDate());
 			else 
-				post.setPostAddedDate(new Date());
+				post.setAddedDate(new Date());
 		}
 		if(post.getPostImage() == null) {
 			if(form.getPostImage() != null)

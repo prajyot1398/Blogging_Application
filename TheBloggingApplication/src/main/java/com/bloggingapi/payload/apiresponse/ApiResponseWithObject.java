@@ -4,13 +4,12 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Getter
-@Setter
-public class ApiResponseWithObject extends ApiResponse {
+public class ApiResponseWithObject<A> extends ApiResponse {
 	
-	private Object object;
+	private final A responseObject;
 	
-	public ApiResponseWithObject(String message, boolean success, Object object) {
+	public ApiResponseWithObject(String message, boolean success, A object) {
 		super(message, success);
-		this.object = object;
+		this.responseObject = object;
 	}
 }

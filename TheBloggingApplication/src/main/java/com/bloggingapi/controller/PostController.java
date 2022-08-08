@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.bloggingapi.blogenum.PostAttrsEnum;
@@ -21,6 +22,8 @@ import com.bloggingapi.exception.InvalidFieldException;
 import com.bloggingapi.payload.PostForm;
 import com.bloggingapi.payload.apiresponse.ApiResponse;
 import com.bloggingapi.payload.apiresponse.ApiResponseWithObject;
+import com.bloggingapi.payload.multi.PaginationForm;
+import com.bloggingapi.payload.multi.PaginationWithContent;
 import com.bloggingapi.service.PostService;
 
 @RestController
@@ -45,15 +48,21 @@ public class PostController {
 		
 		postForm = this.postService.createPost(postForm);
 		
-		return new ResponseEntity<ApiResponse>(new ApiResponseWithObject(responseMessage, true, postForm), HttpStatus.CREATED);
+		return new ResponseEntity<ApiResponse>(new ApiResponseWithObject<PostForm>(responseMessage, true, postForm), HttpStatus.CREATED);
 	}
 	
-	//GET :- Get All The Categories
-	@GetMapping("/")
-	public ResponseEntity<ApiResponse> getAllPosts() {
+	//GET :- Get All The Posts
+	@GetMapping
+	public ResponseEntity<ApiResponse> getAllPosts(
+			@RequestParam(name = "pageNum", defaultValue = "0", required = false) Integer pageNum,
+			@RequestParam(name = "pageSize", defaultValue = "5", required = false) Integer pageSize,
+			@RequestParam(name = "sortColumn", defaultValue = "addedDate", required = false) String sortColumn,
+			@RequestParam(name = "sortAsc", defaultValue = "false", required = false) boolean sortAsc
+			) {
 		
-		List<PostForm> postList = this.postService.getAllPosts();
-		return new ResponseEntity<ApiResponse>(new ApiResponseWithObject("List Of Posts.", true, postList), HttpStatus.OK);
+		PaginationWithContent<List<PostForm>> pair = this.postService.getAllPosts(pageNum, pageSize, sortColumn, sortAsc);
+		return new ResponseEntity<ApiResponse>(
+				new ApiResponseWithObject<PaginationWithContent<List<PostForm>>>("List Of Posts.", true, pair), HttpStatus.OK);
 	}
 	
 	//GET :- Get Post Based On Attr
@@ -69,7 +78,7 @@ public class PostController {
 			throw new InvalidFieldException(postAttr, "Post", List.of("id", "title"));
 		}
 		PostForm postForm = this.postService.getPostByAttr(postAttrValue, attr);
-		return new ResponseEntity<ApiResponse>(new ApiResponseWithObject(
+		return new ResponseEntity<ApiResponse>(new ApiResponseWithObject<PostForm>(
 				"Post with "+postAttr+" : "+postAttrValue, true, postForm), HttpStatus.OK);
 	}
 	
@@ -105,6 +114,6 @@ public class PostController {
 		postForm = this.postService.updatePost(postForm, postAttrValue, attr);
 		//return ResponseEntity.ok(Map.of("message", "Post Deleted Successfully !!"));
 		return new ResponseEntity<ApiResponse>(
-				new ApiResponseWithObject("Post Updated Successfully !!", true, postForm) , HttpStatus.OK);
+				new ApiResponseWithObject<PostForm>("Post Updated Successfully !!", true, postForm) , HttpStatus.OK);
 	}
 }

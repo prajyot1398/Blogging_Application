@@ -1,5 +1,7 @@
 package com.bloggingapi.payload;
 
+import java.util.Date;
+
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Size;
@@ -26,5 +28,5 @@ public class UserForm {
 	@NotEmpty(message = "Password Must No Be Blank Or Null !!")
 	@Size(min = 3, max = 10, message = "Passoword Size Must Be In 3 to 10 !!")
 	private String userPassword;
-	
+	private Date userAddedDate;
 }

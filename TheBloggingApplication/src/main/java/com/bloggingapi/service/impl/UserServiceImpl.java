@@ -3,6 +3,8 @@ package com.bloggingapi.service.impl;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.bloggingapi.blogenum.UserAttrsEnum;
@@ -10,6 +12,8 @@ import com.bloggingapi.entity.User;
 import com.bloggingapi.exception.ElementAlreadyExistException;
 import com.bloggingapi.exception.ResourceNotFoundException;
 import com.bloggingapi.payload.UserForm;
+import com.bloggingapi.payload.multi.PaginationForm;
+import com.bloggingapi.payload.multi.PaginationWithContent;
 import com.bloggingapi.repository.UserRepo;
 import com.bloggingapi.service.UserService;
 import com.bloggingapi.util.UserUtil;
@@ -24,6 +28,7 @@ public class UserServiceImpl implements UserService {
 	public UserForm createUser(UserForm userForm) {
 		
 		User user = UserUtil.userFormToUser(userForm);
+		UserUtil.updateNullValuesInUserFromUserForm(userForm, user);
 		if(!this.userRepo.existsUserByUserEmail(user.getUserEmail())) {
 			user = this.userRepo.save(user);
 		}
@@ -49,16 +54,23 @@ public class UserServiceImpl implements UserService {
 	}
 	
 	@Override
-	public List<UserForm> getAllUsers() {	
+	public PaginationWithContent<List<UserForm>> getAllUsers(
+			Integer pageNum, Integer pageSize,
+			String sortColumn, boolean sortAsc) {	
 		
 		System.out.println(userRepo);				//Object of org.springframework.data.jpa.repository.support.SimpleJpaRepository
 		System.out.println(userRepo.getClass().getName());	//com.sun.proxy.$Proxy128 number changes after context reloading
-		List<User> userList = this.userRepo.findAll(); 
+		
+		Pageable pagination = PaginationForm.getPagination(pageNum, pageSize, sortColumn, sortAsc);
+		Page<User> pageForm = this.userRepo.findAll(pagination); 
+		List<User> userList = pageForm.getContent();
 		List<UserForm> userFormList = UserUtil.getUserFormListFromUserList(userList);
 		if(userFormList == null) {
 			throw new ResourceNotFoundException("User");
 		}
-		return userFormList;
+		
+		PaginationForm paginationForm = PaginationForm.getPaginationFormFromPage(pageForm, sortColumn, sortAsc);
+		return PaginationWithContent.of(userFormList, paginationForm);
 	}
 
 	@Override

@@ -1,5 +1,6 @@
 package com.bloggingapi.entity;
 
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -39,6 +40,9 @@ public class User {
 	
 	@Column(name="password")
 	private String userPassword;
+	
+	@Column(name = "added_date", nullable = false)
+	private Date addedDate; 
 	
 	@OneToMany(mappedBy = "user", fetch = FetchType.EAGER)
 	private Set<Post> postsSet = new HashSet<>();
