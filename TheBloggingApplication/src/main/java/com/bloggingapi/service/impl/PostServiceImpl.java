@@ -1,19 +1,27 @@
 package com.bloggingapi.service.impl;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.bloggingapi.blogenum.PostAttrsEnum;
 import com.bloggingapi.entity.Category;
 import com.bloggingapi.entity.Post;
 import com.bloggingapi.entity.User;
 import com.bloggingapi.exception.ElementAlreadyExistException;
+import com.bloggingapi.exception.InvalidFileFormatException;
 import com.bloggingapi.exception.InvalidParentEntityException;
 import com.bloggingapi.exception.ResourceNotFoundException;
 import com.bloggingapi.payload.CategoryForm;
@@ -41,8 +49,16 @@ public class PostServiceImpl implements PostService {
 	@Autowired
 	private CategoryRepo categoryRepo;
 	
+	@Value("${project.postImagesParentDir}")
+	private String POST_IMAGES_PARENT_DIR;
+	
+	@Value("${project.postImagesDir}")
+	private String POST_IMAGES_DIR;
+	
+	private final String DEFAULT_IMAGE = "default.jpg";
+	
 	@Override
-	public PostForm createPost(PostForm postForm) {
+	public PostForm createPost(PostForm postForm, MultipartFile postImageFile) {
 		
 		User user = userRepo.findByUserEmail(postForm.getUserEmail())
 				.orElseThrow(() -> new ResourceNotFoundException("User", "UserName/Email", postForm.getUserEmail()));
@@ -55,7 +71,18 @@ public class PostServiceImpl implements PostService {
 		post.setUser(user);
 		
 		if(!postRepo.existsPostByPostTitle(post.getPostTitle())) {
-			post = this.postRepo.save(post);
+			//Logic to save post image in filesystem and update postImage.
+			String postImageNewName = this.getPostImageNameFromFile(postImageFile);
+			try {
+				this.savePostImageAndGenerateURI(postImageNewName, postImageFile);
+			}catch(Exception exp) {
+				exp.printStackTrace();	
+				postImageNewName = this.DEFAULT_IMAGE;
+			}finally {
+				String addedFileURI = ServletUriComponentsBuilder.fromCurrentContextPath().path(this.POST_IMAGES_DIR + "/").path(postImageNewName).toUriString();
+				post.setPostImage(addedFileURI);
+				post = this.postRepo.save(post);
+			}
 		} else {
 			throw new ElementAlreadyExistException("Post", "Post Title", post.getPostTitle());
 		}
@@ -64,7 +91,7 @@ public class PostServiceImpl implements PostService {
 	}
 
 	@Override
-	public PostForm updatePost(PostForm postForm, String postAttrValue, PostAttrsEnum postAttr) {
+	public PostForm updatePost(PostForm postForm, String postAttrValue, PostAttrsEnum postAttr,  MultipartFile postImageFile) {
 		
 		Post post = getPostFromPostAttr(postAttr, postAttrValue);
 		if(!post.getUser().getUserEmail().equals(postForm.getUserEmail())) {
@@ -76,9 +103,22 @@ public class PostServiceImpl implements PostService {
 		
 		PostUtil.updateNullValuesInPostFromPostForm(postForm, post);
 		
+		if(postImageFile != null) {
+			
+			String postImageNewName = this.getPostImageNameFromFile(postImageFile);
+			try {
+				this.savePostImageAndGenerateURI(postImageNewName, postImageFile);
+			}catch(Exception exp) {
+				exp.printStackTrace();	
+				postImageNewName = this.DEFAULT_IMAGE;
+			}finally {
+				String addedFileURI = ServletUriComponentsBuilder.fromCurrentContextPath().path(this.POST_IMAGES_DIR + "/").path(postImageNewName).toUriString();
+				post.setPostImage(addedFileURI);
+			}
+		}
+		
 		post.setPostTitle(postForm.getPostTitle());
 		post.setPostContent(postForm.getPostContent());
-		post.setPostImage(postForm.getPostImage());
 		
 		post = this.postRepo.save(post);
 		return PostUtil.postToPostForm(post);
@@ -182,5 +222,44 @@ public class PostServiceImpl implements PostService {
 		}
 		
 		return post;
+	}
+	
+	private String getPostImageNameFromFile(MultipartFile file) {
+		
+		String imageName = null;
+		if(file != null) {
+			String originalFileName = file.getOriginalFilename();
+			String randomId = UUID.randomUUID().toString();
+			String extension = originalFileName.substring(originalFileName.lastIndexOf("."));
+			if(extension.equalsIgnoreCase("jpg") || extension.equalsIgnoreCase("png") || extension.equalsIgnoreCase("jpeg")) {
+				imageName = randomId.concat(extension);
+			}
+			else {
+				throw new InvalidFileFormatException(extension, "Post Image", List.of("jpeg", "jpg", "png"));
+			}
+		}else {
+			imageName = this.DEFAULT_IMAGE;
+		}
+		return imageName;
+	}
+	
+	private void savePostImageAndGenerateURI(String imageName, MultipartFile file) throws IOException{
+		
+		if(file != null) { 
+			if(checkAndCreateFolderIfNotExisted()) {
+				Files.copy(file.getInputStream(), Paths.get(this.POST_IMAGES_PARENT_DIR + this.POST_IMAGES_DIR + File.separator + imageName), StandardCopyOption.REPLACE_EXISTING);
+			}else {
+				throw new RuntimeException("Cannot Create Parent Folder For PostImages.");
+			}
+		}	
+	}
+	
+	private boolean checkAndCreateFolderIfNotExisted() throws IOException{
+		
+		File parentFolder = new File(this.POST_IMAGES_PARENT_DIR + this.POST_IMAGES_DIR);
+		if(!parentFolder.exists()) {
+			return parentFolder.mkdir();
+		}
+		return true;
 	}
 }

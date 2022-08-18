@@ -4,6 +4,8 @@ import java.util.Date;
 
 import javax.validation.constraints.NotEmpty;
 
+import org.springframework.web.multipart.MultipartFile;
+
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -33,5 +35,5 @@ public class PostForm {
 	@NotEmpty(message = "Category Name For Post Cannot Be Empty !!")
 	private String categoryName;
 	
-	
+	//private MultipartFile postImageFile;
 }

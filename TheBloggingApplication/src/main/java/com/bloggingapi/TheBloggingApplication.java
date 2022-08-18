@@ -9,6 +9,8 @@ import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
+import org.springframework.web.multipart.MultipartResolver;
+import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 
 @SpringBootApplication
 public class TheBloggingApplication extends SpringBootServletInitializer {
@@ -31,7 +33,7 @@ public class TheBloggingApplication extends SpringBootServletInitializer {
     ModelMapper modelMapper() {
         return new ModelMapper();
     }
-	
+    
 	@Override
 	protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
 		return application.sources(TheBloggingApplication.class);

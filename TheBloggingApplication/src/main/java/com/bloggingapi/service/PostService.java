@@ -2,6 +2,7 @@ package com.bloggingapi.service;
 
 import java.util.List;
 
+import org.springframework.web.multipart.MultipartFile;
 
 import com.bloggingapi.blogenum.PostAttrsEnum;
 import com.bloggingapi.payload.CategoryForm;
@@ -12,10 +13,10 @@ import com.bloggingapi.payload.multi.PaginationWithContent;
 public interface PostService {
 	
 	//Create
-	PostForm createPost(PostForm postForm);
+	PostForm createPost(PostForm postForm, MultipartFile postImageFile);
 	
 	//Update
-	PostForm updatePost(PostForm postForm, String postAttrValue, PostAttrsEnum postAttr);
+	PostForm updatePost(PostForm postForm, String postAttrValue, PostAttrsEnum postAttr, MultipartFile postImageFile);
 	
 	//Get All
 	PaginationWithContent<List<PostForm>> getAllPosts(Integer pageNum, Integer pageSize,

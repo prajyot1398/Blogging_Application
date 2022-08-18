@@ -9,13 +9,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.bloggingapi.blogenum.PaginationConstatnts;
 import com.bloggingapi.blogenum.PostAttrsEnum;
@@ -23,7 +24,6 @@ import com.bloggingapi.exception.InvalidFieldException;
 import com.bloggingapi.payload.PostForm;
 import com.bloggingapi.payload.apiresponse.ApiResponse;
 import com.bloggingapi.payload.apiresponse.ApiResponseWithObject;
-import com.bloggingapi.payload.multi.PaginationForm;
 import com.bloggingapi.payload.multi.PaginationWithContent;
 import com.bloggingapi.service.PostService;
 
@@ -35,8 +35,16 @@ public class PostController {
 	private PostService postService;
 	
 	//POST : Create
-	@PostMapping("/")
-	public ResponseEntity<ApiResponse> createPost(@Valid @RequestBody PostForm postForm) {
+	/*If @ModelAttribute is used, can't use just JSON Request body as it can't convert in to PostForm/DTO.
+	  Need to use form-data, don't give any Content-Type it will work.*/
+	/* If @RequestBody is used for DTO, we can't use multipart directly.*/
+	/* We Need To Use @RequestPart for DTO as well as MultipartFile, so that --> Have some doubt  */
+	@PostMapping(path = "/")
+	//public ResponseEntity<ApiResponse> createPost(@Valid @ModelAttribute PostForm postForm) {
+	public ResponseEntity<ApiResponse> createPost(
+			@Valid @ModelAttribute PostForm postForm,
+			@RequestParam(required = false) MultipartFile postImageFile) {
+	//Doubts in above signature
 		
 		String responseMessage = null;
 		if(postForm.getPostId() != null) {
@@ -47,7 +55,9 @@ public class PostController {
 			responseMessage = "Post created successfully !!"; 
 		}
 		
-		postForm = this.postService.createPost(postForm);
+		//Needed if @RequestPart is used, not needed if @ModelAttribute is used.
+		//https://www.baeldung.com/sprint-boot-multipart-requests
+		postForm = this.postService.createPost(postForm, postImageFile);
 		
 		return new ResponseEntity<ApiResponse>(new ApiResponseWithObject<PostForm>(responseMessage, true, postForm), HttpStatus.CREATED);
 	}
@@ -115,7 +125,9 @@ public class PostController {
 	}
 	
 	@PutMapping("/{postAttr}/{postAttrValue}")
-	public ResponseEntity<ApiResponse> updatePost(@Valid @RequestBody PostForm postForm,
+	public ResponseEntity<ApiResponse> updatePost(
+			@Valid @ModelAttribute PostForm postForm,
+			@RequestParam(required = false) MultipartFile postImageFile, 
 			@PathVariable("postAttr") String postAttr,
 			@PathVariable("postAttrValue") String postAttrValue) {
 		PostAttrsEnum attr = PostAttrsEnum.POST_ID;
@@ -126,7 +138,7 @@ public class PostController {
 		} else {
 			throw new InvalidFieldException(postAttr, "Post", List.of("id", "title"));
 		}
-		postForm = this.postService.updatePost(postForm, postAttrValue, attr);
+		postForm = this.postService.updatePost(postForm, postAttrValue, attr, postImageFile);
 		//return ResponseEntity.ok(Map.of("message", "Post Deleted Successfully !!"));
 		return new ResponseEntity<ApiResponse>(
 				new ApiResponseWithObject<PostForm>("Post Updated Successfully !!", true, postForm) , HttpStatus.OK);

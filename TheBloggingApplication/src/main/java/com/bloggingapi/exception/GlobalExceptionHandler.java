@@ -9,11 +9,10 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.validation.BindException;
 
 import com.bloggingapi.payload.apiresponse.ApiResponse;
 import com.bloggingapi.payload.apiresponse.ApiResponseWithObject;
-
-import lombok.val;
 
 //Used for global exception handler and this annotation will scan all the controllers and
 //Will be reached here if exception occurs in those controllers. 
@@ -33,11 +32,20 @@ public class GlobalExceptionHandler {
 		Map<String, String> exceptions = new HashMap<>();
 		
 		exp.getBindingResult().getAllErrors().forEach((error) -> {
-			
 			exceptions.put(((FieldError)error).getField(), error.getDefaultMessage());
 		});
+		return new ResponseEntity<ApiResponse>(new ApiResponseWithObject<Map<String, String>>("Invalid Fields !!", false, exceptions), HttpStatus.BAD_REQUEST);
+	}
+	
+	@ExceptionHandler(value = BindException.class) 
+	public ResponseEntity<ApiResponse> bindExceptionHandler(BindException exp) {
 		
-		return new ResponseEntity<ApiResponse>(new ApiResponseWithObject("Invalid Fields !!", false, exceptions), HttpStatus.BAD_REQUEST);
+		Map<String, String> exceptions = new HashMap<>();
+		
+		exp.getBindingResult().getAllErrors().forEach((error) -> {
+			exceptions.put(((FieldError)error).getField(), error.getDefaultMessage());
+		});
+		return new ResponseEntity<ApiResponse>(new ApiResponseWithObject<Map<String, String>>("Invalid Fields !!", false, exceptions), HttpStatus.BAD_REQUEST);
 	}
 	
 	@ExceptionHandler(value = InvalidFieldException.class) 
@@ -56,4 +64,10 @@ public class GlobalExceptionHandler {
 	public ResponseEntity<ApiResponse> invalidParentEntityException(InvalidParentEntityException exp) {
 		return new ResponseEntity<ApiResponse>(new ApiResponse(exp.getMessage(), false), HttpStatus.BAD_REQUEST);
 	}
-}
+	
+	@ExceptionHandler(value = InvalidFileFormatException.class) 
+	public ResponseEntity<ApiResponse> invalidFileFormatException(InvalidFileFormatException exp) {
+		
+		return new ResponseEntity<ApiResponse>(new ApiResponse(exp.getMessage(), false), HttpStatus.BAD_REQUEST);
+	}
+} 

@@ -86,11 +86,11 @@ public class PostUtil {
 			else 
 				post.setAddedDate(new Date());
 		}
-		if(post.getPostImage() == null) {
-			if(form.getPostImage() != null)
-				post.setPostImage(form.getPostImage());
-			else 
-				post.setPostImage("default.png");
-		}
+		/*
+		// Commented because, in case only imageName is received and no file from client
+		// then it should not override the existing name.  
+		if (post.getPostImage() == null && form.getPostImage() != null) {
+			post.setPostImage(form.getPostImage());
+		}*/ 
 	}
  }
