@@ -1,6 +1,8 @@
 package com.bloggingapi.payload;
 
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.validation.constraints.NotEmpty;
 
@@ -35,4 +37,6 @@ public class PostForm {
 	private String categoryName;
 	
 	//private MultipartFile postImageFile;
+	
+	private Set<CommentForm> comments = new HashSet<>();
 }

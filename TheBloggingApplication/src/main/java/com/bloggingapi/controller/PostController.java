@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -21,6 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.bloggingapi.blogenum.PaginationConstatnts;
 import com.bloggingapi.blogenum.PostAttrsEnum;
 import com.bloggingapi.exception.InvalidFieldException;
+import com.bloggingapi.payload.CommentForm;
 import com.bloggingapi.payload.PostForm;
 import com.bloggingapi.payload.apiresponse.ApiResponse;
 import com.bloggingapi.payload.apiresponse.ApiResponseWithObject;
@@ -60,6 +62,25 @@ public class PostController {
 		postForm = this.postService.createPost(postForm, postImageFile);
 		
 		return new ResponseEntity<ApiResponse>(new ApiResponseWithObject<PostForm>(responseMessage, true, postForm), HttpStatus.CREATED);
+	}
+	
+	@PostMapping("/comment")
+	public ResponseEntity<ApiResponse> addCommentOnPost(
+			@Valid @RequestBody CommentForm commentForm) {
+		
+		PostForm postForm = this.postService.addOrDeleteComment(commentForm, false);
+		return new ResponseEntity<ApiResponse>(new ApiResponseWithObject<PostForm>("Post", true, postForm), HttpStatus.CREATED);
+	}
+	
+	@DeleteMapping("/comment")
+	public ResponseEntity<ApiResponse> deleteCommentOnPost(
+			@Valid @RequestBody CommentForm commentForm) {
+		
+		if(commentForm.getCommentId() == null) {
+			return new ResponseEntity<ApiResponse>(new ApiResponse("For Deleting Comment, Comment Id Is Required !!", false) , HttpStatus.BAD_REQUEST);
+		}
+		PostForm postForm = this.postService.addOrDeleteComment(commentForm, true);
+		return new ResponseEntity<ApiResponse>(new ApiResponseWithObject<PostForm>("Post", true, postForm), HttpStatus.CREATED);
 	}
 	
 	//GET :- Get All The Posts

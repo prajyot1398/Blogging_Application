@@ -7,7 +7,9 @@ import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
 
+import com.bloggingapi.entity.Comment;
 import com.bloggingapi.entity.Post;
+import com.bloggingapi.payload.CommentForm;
 import com.bloggingapi.payload.PostForm;
 
 public class PostUtil {
@@ -26,6 +28,18 @@ public class PostUtil {
 		return postForm;
 	}
 	
+	public static Comment commentFormToComment(CommentForm form) {
+		
+		Comment comment = new ModelMapper().map(form, Comment.class);
+		return comment;
+	}
+	
+	public static CommentForm commentToCommentForm(Comment comment) {
+		 
+		CommentForm form = new ModelMapper().map(comment, CommentForm.class);
+		updateNullValuesInCommentFormFromComment(form, comment);
+		return form;
+	} 
 	public static List<PostForm> getPostFormListFromPostList(List<Post> postList) {
 		
 		List<PostForm> formList = null;
@@ -92,5 +106,42 @@ public class PostUtil {
 		if (post.getPostImage() == null && form.getPostImage() != null) {
 			post.setPostImage(form.getPostImage());
 		}*/ 
+	}
+	
+	public static void updateNullValuesInCommentFromCommentForm(CommentForm form, Comment comment) {
+		
+		if(comment.getCommentId() == null && form.getCommentId() != null) {
+			comment.setCommentId(form.getCommentId());
+		}
+		if(comment.getComment() == null) {
+			comment.setComment(form.getComment());
+		}
+		if(comment.getAddedDate() == null) {
+			if(form.getAddedDate() != null) {
+				comment.setAddedDate(form.getAddedDate());
+			}
+			else {
+				comment.setAddedDate(new Date());
+			}
+		}
+	}
+	
+	public static void updateNullValuesInCommentFormFromComment(CommentForm form, Comment comment) {
+		
+		if(form.getCommentId() == null && comment.getCommentId() != null) {
+			form.setCommentId(comment.getCommentId());
+		}
+		if(form.getComment() == null) {
+			form.setComment(comment.getComment());
+		}
+		if(form.getAddedDate() == null) {
+			form.setAddedDate(comment.getAddedDate());
+		}
+		if(form.getPostTitle() == null) {
+			form.setPostTitle(comment.getPost().getPostTitle());
+		}
+		if(form.getUserEmail() == null) {
+			form.setUserEmail(comment.getUser().getUserEmail());
+		}
 	}
  }

@@ -6,6 +6,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.bloggingapi.blogenum.PostAttrsEnum;
 import com.bloggingapi.payload.CategoryForm;
+import com.bloggingapi.payload.CommentForm;
 import com.bloggingapi.payload.PostForm;
 import com.bloggingapi.payload.UserForm;
 import com.bloggingapi.payload.multi.PaginationWithContent;
@@ -42,4 +43,6 @@ public interface PostService {
 	PaginationWithContent<List<PostForm>> searchPostByKeyword(String keyWord,
 			Integer pageNum, Integer pageSize,
 			String sortColumn, boolean sortAsc);
+
+	PostForm addOrDeleteComment(CommentForm commentForm, boolean delete);
 }

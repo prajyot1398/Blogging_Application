@@ -18,6 +18,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.bloggingapi.blogenum.PostAttrsEnum;
 import com.bloggingapi.entity.Category;
+import com.bloggingapi.entity.Comment;
 import com.bloggingapi.entity.Post;
 import com.bloggingapi.entity.User;
 import com.bloggingapi.exception.ElementAlreadyExistException;
@@ -25,11 +26,13 @@ import com.bloggingapi.exception.InvalidFileFormatException;
 import com.bloggingapi.exception.InvalidParentEntityException;
 import com.bloggingapi.exception.ResourceNotFoundException;
 import com.bloggingapi.payload.CategoryForm;
+import com.bloggingapi.payload.CommentForm;
 import com.bloggingapi.payload.PostForm;
 import com.bloggingapi.payload.UserForm;
 import com.bloggingapi.payload.multi.PaginationForm;
 import com.bloggingapi.payload.multi.PaginationWithContent;
 import com.bloggingapi.repository.CategoryRepo;
+import com.bloggingapi.repository.CommentRepo;
 import com.bloggingapi.repository.PostRepo;
 import com.bloggingapi.repository.UserRepo;
 import com.bloggingapi.service.PostService;
@@ -48,6 +51,9 @@ public class PostServiceImpl implements PostService {
 	
 	@Autowired
 	private CategoryRepo categoryRepo;
+	
+	@Autowired
+	private CommentRepo commentRepo;
 	
 	@Value("${project.postImagesParentDir}")
 	private String POST_IMAGES_PARENT_DIR;
@@ -261,5 +267,33 @@ public class PostServiceImpl implements PostService {
 			return parentFolder.mkdir();
 		}
 		return true;
+	}
+
+	@Override
+	public PostForm addOrDeleteComment(CommentForm commentForm, boolean delete) {
+		
+		User user = userRepo.findByUserEmail(commentForm.getUserEmail())
+				.orElseThrow(() -> new ResourceNotFoundException("User", "UserName/Email", commentForm.getUserEmail()));
+		
+		Post post = this.postRepo.findByPostTitle(commentForm.getPostTitle())
+				.orElseThrow(() -> new ResourceNotFoundException("Post", "Title", commentForm.getPostTitle()));
+		
+		Comment comment = PostUtil.commentFormToComment(commentForm);
+		PostUtil.updateNullValuesInCommentFromCommentForm(commentForm, comment);
+		comment.setPost(post);
+		comment.setUser(user);
+		
+		if(delete) {
+			if(!this.commentRepo.existsById(comment.getCommentId())) {
+				throw new ResourceNotFoundException("Comment", "CommentId", String.valueOf(comment.getCommentId()));
+			}
+			this.commentRepo.delete(comment);
+		}
+		else {
+			comment = this.commentRepo.save(comment);
+		}
+		post.setComments(this.commentRepo.findByPost(post));
+		
+		return PostUtil.postToPostForm(post);
 	}
 }

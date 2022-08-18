@@ -44,6 +44,9 @@ public class User {
 	@Column(name = "added_date", nullable = false)
 	private Date addedDate; 
 	
-	@OneToMany(mappedBy = "user", fetch = FetchType.EAGER)
+	@OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
 	private Set<Post> postsSet = new HashSet<>();
+	
+	@OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+	private Set<Comment> commentSet = new HashSet<>();
 }

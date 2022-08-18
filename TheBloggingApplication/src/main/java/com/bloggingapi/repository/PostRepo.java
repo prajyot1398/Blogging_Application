@@ -22,14 +22,12 @@ public interface PostRepo extends JpaRepository<Post, Integer> {
 
 	Page<Post> findByUser(User user, Pageable pagination);
 	
-	
 	/*
 	 * Used when we have to use manual query. Insetead of genarated query.
 	 * And use %keyword% while passing the value
 	 * */
 	//@Query("SELECT P FROM Post P WHERE P.postTitle like :key")
 	//Page<Post> searchByPostTitleContaining(@Param("key") String keyword, Pageable pagination);
-
 	
 	Page<Post> findByPostTitleContaining(String keyword, Pageable pagination);
 }
