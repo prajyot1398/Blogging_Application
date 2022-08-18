@@ -1,7 +1,6 @@
 package com.bloggingapi.payload.apiresponse;
 
 import lombok.Getter;
-import lombok.Setter;
 
 @Getter
 public class ApiResponseWithObject<A> extends ApiResponse {

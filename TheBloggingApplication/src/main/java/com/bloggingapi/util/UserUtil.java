@@ -5,7 +5,6 @@ import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
 
-import java.util.ArrayList;
 import java.util.Date;
 
 import com.bloggingapi.entity.User;

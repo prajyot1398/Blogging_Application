@@ -4,7 +4,6 @@ import java.util.Date;
 
 import javax.validation.constraints.NotEmpty;
 
-import org.springframework.web.multipart.MultipartFile;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
