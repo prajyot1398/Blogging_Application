@@ -70,4 +70,10 @@ public class GlobalExceptionHandler {
 		
 		return new ResponseEntity<ApiResponse>(new ApiResponse(exp.getMessage(), false), HttpStatus.BAD_REQUEST);
 	}
+
+	@ExceptionHandler(value = RuntimeException.class)
+	public ResponseEntity<ApiResponse> runtimeException(RuntimeException exp) {
+		
+		return new ResponseEntity<ApiResponse>(new ApiResponse(exp.getMessage(), false), HttpStatus.UNAUTHORIZED);
+	}
 } 

@@ -7,6 +7,7 @@ import javax.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -39,6 +40,7 @@ public class UserController {
 	private PostService postService;
 	
 	//POST :- Create User
+	@PreAuthorize("hasRole('ADMIN')")
 	@PostMapping("/")
 	public ResponseEntity<ApiResponse> createUser(@Valid @RequestBody UserForm userForm) {
 		
@@ -55,6 +57,21 @@ public class UserController {
 				new ApiResponseWithObject<UserForm>(responseMessage, true, userForm) ,HttpStatus.CREATED);
 	}
 	
+	//Same as above but for signup purpose
+	public ResponseEntity<ApiResponse> registerUser(UserForm userForm) {
+		
+		String responseMessage = null;
+		if(userForm.getUserId() != null) {
+			responseMessage = "You have provided userId in POST Request, it might "
+					+ "override existing user if present with same id. It won't consider"
+					+ " userId if user not already exists as ids are auto-incremented";
+		}else {
+			responseMessage = "User created successfully !!"; 
+		}
+		userForm = this.userService.createUser(userForm);
+		return new ResponseEntity<ApiResponse>(
+				new ApiResponseWithObject<UserForm>(responseMessage, true, userForm) ,HttpStatus.CREATED);
+	}
 	/*
 	//GET :- Get All Users
 	@GetMapping("/")
@@ -64,7 +81,7 @@ public class UserController {
 		return new ResponseEntity<List<UserForm>>(listUsers, HttpStatus.OK);
 	}*/
 	//GET :- Get All Users
-	@GetMapping
+	@GetMapping("/")
 	public ResponseEntity<ApiResponse> getUsers(
 			@RequestParam(name = "pageNum", defaultValue = PaginationConstatnts.PAGE_NUM , required = false) Integer pageNum,
 			@RequestParam(name = "pageSize", defaultValue = PaginationConstatnts.PAGE_SIZE, required = false) Integer pageSize,
@@ -114,6 +131,8 @@ public class UserController {
 	}
 	
 	//DELETE : Delete User Based On Id or Email.
+	
+	@PreAuthorize("hasRole('ADMIN')")
 	@DeleteMapping("/{userAttr}/{userAttrValue}")
 	public ResponseEntity<ApiResponse> deleteUser(@PathVariable("userAttr") String userAttr,
 			@PathVariable("userAttrValue") String userAttrValue) {

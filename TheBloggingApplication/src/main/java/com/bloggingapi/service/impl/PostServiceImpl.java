@@ -10,6 +10,7 @@ import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -55,11 +56,11 @@ public class PostServiceImpl implements PostService {
 	@Autowired
 	private CommentRepo commentRepo;
 	
-	@Value("${project.postImagesParentDir}")
-	private String POST_IMAGES_PARENT_DIR;
+	//@Value("${project.postImagesParentDir}")
+	//private String POST_IMAGES_PARENT_DIR;
 	
 	@Value("${project.postImagesDir}")
-	private String POST_IMAGES_DIR;
+	private Resource POST_IMAGES_DIR;
 	
 	private final String DEFAULT_IMAGE = "default.jpg";
 	
@@ -80,14 +81,13 @@ public class PostServiceImpl implements PostService {
 			//Logic to save post image in filesystem and update postImage.
 			String postImageNewName = this.getPostImageNameFromFile(postImageFile);
 			try {
-				this.savePostImageAndGenerateURI(postImageNewName, postImageFile);
+				this.savePostImage(postImageNewName, postImageFile);
 			}catch(Exception exp) {
 				exp.printStackTrace();	
 				postImageNewName = this.DEFAULT_IMAGE;
 			}finally {
-				String addedFileURI = ServletUriComponentsBuilder.fromCurrentContextPath().path(this.POST_IMAGES_DIR + "/").path(postImageNewName).toUriString();
+				String addedFileURI = ServletUriComponentsBuilder.fromCurrentContextPath().path(getParentFolderName()).path(postImageNewName).toUriString();
 				post.setPostImage(addedFileURI);
-				post = this.postRepo.save(post);
 			}
 		} else {
 			throw new ElementAlreadyExistException("Post", "Post Title", post.getPostTitle());
@@ -111,15 +111,27 @@ public class PostServiceImpl implements PostService {
 		
 		if(postImageFile != null) {
 			
+			boolean isImageUpdated = false;
 			String postImageNewName = this.getPostImageNameFromFile(postImageFile);
+			String existingImageName = post.getPostImage();
+			existingImageName = existingImageName.substring(existingImageName.lastIndexOf("/")+1);
+			
 			try {
-				this.savePostImageAndGenerateURI(postImageNewName, postImageFile);
+				this.savePostImage(postImageNewName, postImageFile);
+				isImageUpdated = true;
 			}catch(Exception exp) {
 				exp.printStackTrace();	
-				postImageNewName = this.DEFAULT_IMAGE;
+				postImageNewName = existingImageName;
 			}finally {
-				String addedFileURI = ServletUriComponentsBuilder.fromCurrentContextPath().path(this.POST_IMAGES_DIR + "/").path(postImageNewName).toUriString();
+				String addedFileURI = ServletUriComponentsBuilder.fromCurrentContextPath().path(getParentFolderName()).path(postImageNewName).toUriString();
 				post.setPostImage(addedFileURI);
+				
+				if(isImageUpdated) {
+					//Deletes existing image
+					if(!existingImageName.equals(this.DEFAULT_IMAGE)) {
+						this.deleteExistingImage(existingImageName);
+					}
+				}
 			}
 		}
 		
@@ -128,6 +140,14 @@ public class PostServiceImpl implements PostService {
 		
 		post = this.postRepo.save(post);
 		return PostUtil.postToPostForm(post);
+	}
+
+	private void deleteExistingImage(String existingImageName) {
+		try {
+			Files.deleteIfExists(Paths.get(this.POST_IMAGES_DIR.getFile().getPath() + File.separator + existingImageName));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 	@Override
@@ -237,7 +257,7 @@ public class PostServiceImpl implements PostService {
 			String originalFileName = file.getOriginalFilename();
 			String randomId = UUID.randomUUID().toString();
 			String extension = originalFileName.substring(originalFileName.lastIndexOf("."));
-			if(extension.equalsIgnoreCase("jpg") || extension.equalsIgnoreCase("png") || extension.equalsIgnoreCase("jpeg")) {
+			if(extension.equalsIgnoreCase(".jpg") || extension.equalsIgnoreCase(".png") || extension.equalsIgnoreCase(".jpeg")) {
 				imageName = randomId.concat(extension);
 			}
 			else {
@@ -249,11 +269,12 @@ public class PostServiceImpl implements PostService {
 		return imageName;
 	}
 	
-	private void savePostImageAndGenerateURI(String imageName, MultipartFile file) throws IOException{
+	private void savePostImage(String imageName, MultipartFile file) throws IOException{
 		
 		if(file != null) { 
 			if(checkAndCreateFolderIfNotExisted()) {
-				Files.copy(file.getInputStream(), Paths.get(this.POST_IMAGES_PARENT_DIR + this.POST_IMAGES_DIR + File.separator + imageName), StandardCopyOption.REPLACE_EXISTING);
+				File parentFolder = this.POST_IMAGES_DIR.getFile();
+				Files.copy(file.getInputStream(), Paths.get(parentFolder.getPath() + File.separator + imageName), StandardCopyOption.REPLACE_EXISTING);
 			}else {
 				throw new RuntimeException("Cannot Create Parent Folder For PostImages.");
 			}
@@ -262,7 +283,7 @@ public class PostServiceImpl implements PostService {
 	
 	private boolean checkAndCreateFolderIfNotExisted() throws IOException{
 		
-		File parentFolder = new File(this.POST_IMAGES_PARENT_DIR + this.POST_IMAGES_DIR);
+		File parentFolder = this.POST_IMAGES_DIR.getFile();
 		if(!parentFolder.exists()) {
 			return parentFolder.mkdir();
 		}
@@ -295,5 +316,12 @@ public class PostServiceImpl implements PostService {
 		post.setComments(this.commentRepo.findByPost(post));
 		
 		return PostUtil.postToPostForm(post);
+	}
+	
+	private String getParentFolderName() {
+		
+		String parentFolderPath = this.POST_IMAGES_DIR.toString();
+		parentFolderPath = parentFolderPath.substring(parentFolderPath.indexOf("/")+1, parentFolderPath.lastIndexOf("/")+1);
+		return parentFolderPath;
 	}
 }

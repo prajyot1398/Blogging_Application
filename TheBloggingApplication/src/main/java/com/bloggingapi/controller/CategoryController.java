@@ -7,6 +7,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -39,6 +40,7 @@ public class CategoryController {
 	private PostService postService;
 	
 	//POST : Create Category
+	@PreAuthorize("hasRole('ADMIN')")
 	@PostMapping("/")
 	public ResponseEntity<ApiResponse> createCategory(@Valid @RequestBody CategoryForm categoryForm) {
 		
@@ -77,6 +79,7 @@ public class CategoryController {
 	}
 	
 	//PUT : Update single category based on name or id.
+	@PreAuthorize("hasRole('ADMIN')")
 	@PutMapping("{categoryAttr}/{categoryAttrValue}")
 	public ResponseEntity<ApiResponse> updateCategory(@PathVariable("categoryAttr") String categoryAttr, 
 			@PathVariable("categoryAttrValue") String categoryAttrValue, @Valid @RequestBody CategoryForm form) {
@@ -89,6 +92,7 @@ public class CategoryController {
 	}
 	
 	//DELETE : Delete Single category based on id or name
+	@PreAuthorize("hasRole('ADMIN')")
 	@DeleteMapping("{categoryAttr}/{categoryAttrValue}")
 	public ResponseEntity<ApiResponse> deleteCategory(@PathVariable("categoryAttr") String categoryAttr, 
 			@PathVariable("categoryAttrValue") String categoryAttrValue) {

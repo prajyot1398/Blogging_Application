@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.bloggingapi.blogenum.UserAttrsEnum;
@@ -14,6 +15,7 @@ import com.bloggingapi.exception.ResourceNotFoundException;
 import com.bloggingapi.payload.UserForm;
 import com.bloggingapi.payload.multi.PaginationForm;
 import com.bloggingapi.payload.multi.PaginationWithContent;
+import com.bloggingapi.repository.RoleRepo;
 import com.bloggingapi.repository.UserRepo;
 import com.bloggingapi.service.UserService;
 import com.bloggingapi.util.UserUtil;
@@ -24,12 +26,20 @@ public class UserServiceImpl implements UserService {
 	@Autowired
 	private UserRepo userRepo; 
 	
+	@Autowired
+	private PasswordEncoder passwordEncoder;
+
+	@Autowired
+	private RoleRepo roleRepo;
+
 	@Override
 	public UserForm createUser(UserForm userForm) {
 		
 		User user = UserUtil.userFormToUser(userForm);
 		UserUtil.updateNullValuesInUserFromUserForm(userForm, user);
 		if(!this.userRepo.existsUserByUserEmail(user.getUserEmail())) {
+			user.setUserPassword(passwordEncoder.encode(user.getUserPassword()));
+			user.getRoles().add(this.roleRepo.findByRoleName("ROLE_NORMAL"));
 			user = this.userRepo.save(user);
 		}
 		else {
@@ -42,12 +52,17 @@ public class UserServiceImpl implements UserService {
 	public UserForm updateUser(UserForm userForm, String userAttrValue, UserAttrsEnum userAttr) {
 		User user = getUserFromUserAttr(userAttr, userAttrValue);
 		
+		boolean isPasswordUpdated = false;
+		if(userForm.getUserPassword() != null && !user.getUserPassword().equals(userForm.getUserPassword()))
+			isPasswordUpdated = true;
+	
 		UserUtil.updateNullValuesInUserFormFromUser(userForm, user);
 		user.setUserId(userForm.getUserId());
 		user.setUserName(userForm.getUserName());
 		user.setUserEmail(userForm.getUserEmail());
 		user.setUserAbout(userForm.getUserAbout());
-		user.setUserPassword(userForm.getUserPassword());
+		if(isPasswordUpdated)
+			user.setUserPassword(this.passwordEncoder.encode(userForm.getUserPassword()));
 		
 		user = this.userRepo.save(user);
 		return UserUtil.userToUserForm(user);

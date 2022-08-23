@@ -4,14 +4,19 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -49,4 +54,11 @@ public class User {
 	
 	@OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
 	private Set<Comment> commentSet = new HashSet<>();
+	
+	@ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+	@JoinTable(
+			name = "blogging_user_roles",
+			joinColumns = @JoinColumn(referencedColumnName = "id", name = "user_id"),
+			inverseJoinColumns = @JoinColumn(referencedColumnName = "role_id", name = "role_id"))
+	private Set<Role> roles = new HashSet<>();
 }
