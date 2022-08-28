@@ -9,8 +9,11 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import com.bloggingapi.entity.User;
 
+import lombok.Getter;
+
 public class CustomUserDetail implements UserDetails{
 
+	@Getter
     private User user;
 
     public CustomUserDetail(User user) {

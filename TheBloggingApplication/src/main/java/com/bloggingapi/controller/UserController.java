@@ -7,6 +7,7 @@ import javax.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -42,7 +43,7 @@ public class UserController {
 	//POST :- Create User
 	@PreAuthorize("hasRole('ADMIN')")
 	@PostMapping("/")
-	public ResponseEntity<ApiResponse> createUser(@Valid @RequestBody UserForm userForm) {
+	public ResponseEntity<ApiResponse> createUser(@Valid @RequestBody(required = true) UserForm userForm) {
 		
 		String responseMessage = null;
 		if(userForm.getUserId() != null) {
@@ -104,9 +105,9 @@ public class UserController {
 				new ApiResponseWithObject<UserForm>("User with "+userAttr+" : "+userAttrValue, true, userForm), HttpStatus.OK);
 	}
 	
-	@GetMapping("/search")
+	@GetMapping("/search/{searchName}")
 	public ResponseEntity<ApiResponse> searchUserByKeyword(
-			@RequestParam(name = "searchName", required = true) String searchName,
+			@PathVariable(name = "searchName", required = true) String searchName,
 			@RequestParam(name = "pageNum", defaultValue = PaginationConstatnts.PAGE_NUM, required = false) Integer pageNum,
 			@RequestParam(name = "pageSize", defaultValue = PaginationConstatnts.PAGE_SIZE, required = false) Integer pageSize,
 			@RequestParam(name = "sortColumn", defaultValue = PaginationConstatnts.SORT_COLUMN, required = false) String sortColumn,

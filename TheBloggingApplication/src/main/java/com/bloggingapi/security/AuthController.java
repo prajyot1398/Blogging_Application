@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.bloggingapi.controller.UserController;
 import com.bloggingapi.payload.UserForm;
 import com.bloggingapi.payload.apiresponse.ApiResponse;
+import com.bloggingapi.util.UserUtil;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -46,7 +47,7 @@ public class AuthController {
 
         JwtAuthResponse response = new JwtAuthResponse();
         response.setToken(generatedToken);
-        
+        response.setUserForm(UserUtil.userToUserForm(((CustomUserDetail)userDetails).getUser()));
         return new ResponseEntity<JwtAuthResponse>(response, HttpStatus.OK);
     }
 

@@ -80,7 +80,7 @@ public class PostController {
 			return new ResponseEntity<ApiResponse>(new ApiResponse("For Deleting Comment, Comment Id Is Required !!", false) , HttpStatus.BAD_REQUEST);
 		}
 		PostForm postForm = this.postService.addOrDeleteComment(commentForm, true);
-		return new ResponseEntity<ApiResponse>(new ApiResponseWithObject<PostForm>("Post", true, postForm), HttpStatus.CREATED);
+		return new ResponseEntity<ApiResponse>(new ApiResponseWithObject<PostForm>("Post", true, postForm), HttpStatus.OK);
 	}
 	
 	//GET :- Get All The Posts
@@ -97,9 +97,9 @@ public class PostController {
 				new ApiResponseWithObject<PaginationWithContent<List<PostForm>>>("List Of Posts.", true, pair), HttpStatus.OK);
 	}
 	
-	@GetMapping("/search")
+	@GetMapping("/search/{searchName}")
 	public ResponseEntity<ApiResponse> searchPostByKeyword(
-			@RequestParam(name = "searchName", required = true) String searchName,
+			@PathVariable(name = "searchName", required = true) String searchName,
 			@RequestParam(name = "pageNum", defaultValue = PaginationConstatnts.PAGE_NUM, required = false) Integer pageNum,
 			@RequestParam(name = "pageSize", defaultValue = PaginationConstatnts.PAGE_SIZE, required = false) Integer pageSize,
 			@RequestParam(name = "sortColumn", defaultValue = PaginationConstatnts.SORT_COLUMN, required = false) String sortColumn,

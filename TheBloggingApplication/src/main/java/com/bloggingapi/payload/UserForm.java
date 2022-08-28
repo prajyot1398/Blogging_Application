@@ -21,6 +21,7 @@ import lombok.Setter;
 @Setter
 public class UserForm {
 	
+	@JsonProperty(access = Access.READ_ONLY)
 	private Integer userId;
 	
 	@NotEmpty(message = "Name Of User Must Not Be Blank Or Null !!")
@@ -33,5 +34,6 @@ public class UserForm {
 	@Size(min = 3, max = 10, message = "Passoword Size Must Be In 3 to 10 !!")
 	@JsonProperty(access = Access.WRITE_ONLY)
 	private String userPassword;
+	@JsonProperty(access = Access.READ_ONLY)
 	private Date userAddedDate;
 }
